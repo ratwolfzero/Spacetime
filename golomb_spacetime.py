@@ -24,6 +24,22 @@ class QuantumGolombSpacetime:
         new_dists = {abs(candidate - mark) for mark in self.marks}
         return new_dists.isdisjoint(self.distances)
 
+# -----------------------------------------------------------------------------
+# DOCTRINE NOTE: Emergent Golomb Spacetime
+# -----------------------------------------------------------------------------
+# This simulation does not aim to construct optimal or minimal Golomb rulers.
+# Instead, it evolves a set of integers (marks) under the constraint that all
+# pairwise distances remain unique — the Golomb condition.
+#
+# These marks are interpreted as temporal events in a growing spacetime, influenced
+# by physical analogs such as matter density, curvature, and quantum fluctuations.
+#
+# The goal is not combinatorial perfection, but physical emergence. Golomb logic
+# serves as a structural law — not as an optimization target.
+#
+# In short: this code grows Golomb spacetime, not Golomb rulers.
+# -----------------------------------------------------------------------------
+    
     def quantum_growth(self, max_marks=30, temperature=0.02, search_limit=1000):
         while len(self.marks) < max_marks:
             current_max = self.marks[-1]
