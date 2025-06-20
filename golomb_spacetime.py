@@ -447,6 +447,6 @@ class QuantumGolombSpacetime:
 
 # Create and analyze quantum spacetime
 simulator = QuantumGolombSpacetime(initial_marks=[0, 1])
-simulator.quantum_growth(max_marks=400, temperature=0.1)
+simulator.quantum_growth(max_marks=40, temperature=0.1)
 simulator.plot_spacetime(size=256)
 
