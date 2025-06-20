@@ -39,6 +39,24 @@ class QuantumGolombSpacetime:
 #
 # In short: this code grows Golomb spacetime, not Golomb rulers.
 # -----------------------------------------------------------------------------
+
+# Theoretical Interpretation:
+#
+# This system can be viewed as a discrete quantized spacetime model:
+#
+# - Marks are interpreted as fundamental quantum events.
+# - Integer positions represent Planck-scale units.
+# - Unique pairwise distances act as a constraint akin to quantum 
+#   state exclusivity, preventing metric degeneracy.
+# - The growth process simulates quantum cosmological inflation, 
+#   with randomness (temperature) mimicking vacuum fluctuations.
+# - Emergent properties such as curvature, matter density, and 
+#   fractal dimension arise from local geometrical constraints.
+#
+# This framework offers a computational playground for exploring
+# how structure and physics might emerge from discrete rule sets.
+# -----------------------------------------------------------------------------
+
     
     def quantum_growth(self, max_marks=30, temperature=0.02, search_limit=1000):
         while len(self.marks) < max_marks:
