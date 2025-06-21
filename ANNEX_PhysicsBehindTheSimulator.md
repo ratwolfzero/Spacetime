@@ -142,7 +142,8 @@ This suggests the simulation mirrors **dimensional emergence**:
 
 - **Discrete Spacetime Models — Regge Calculus, Causal Sets**
   
-  [https://en.wikipedia.org/wiki/Regge\_calculus](https://en.wikipedia.org/wiki/Regge_calculus).
+  [https://en.wikipedia.org/wiki/Regge\_calculus](https://en.wikipedia.org/wiki/Regge_calculus)
+
   [https://en.wikipedia.org/wiki/Causal\_set](https://en.wikipedia.org/wiki/Causal_set)
 
 - **Golomb Rulers in Communication Theory**
@@ -151,12 +152,14 @@ This suggests the simulation mirrors **dimensional emergence**:
 
 - **Emergence and Effective Field Theory**
 
-  [https://en.wikipedia.org/wiki/Emergence](https://en.wikipedia.org/wiki/Emergence).
+  [https://en.wikipedia.org/wiki/Emergence](https://en.wikipedia.org/wiki/Emergence)
+
   [https://en.wikipedia.org/wiki/Effective\_field\_theory](https://en.wikipedia.org/wiki/Effective_field_theory)
 
 - **Spectral Geometry and Quantum Graphs**
 
-  [https://en.wikipedia.org/wiki/Spectral\_geometry](https://en.wikipedia.org/wiki/Spectral_geometry).
+  [https://en.wikipedia.org/wiki/Spectral\_geometry](https://en.wikipedia.org/wiki/Spectral_geometry)
+  
   [https://en.wikipedia.org/wiki/Quantum\_graph](https://en.wikipedia.org/wiki/Quantum_graph)
 
 ---
