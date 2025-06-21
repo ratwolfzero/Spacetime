@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x1f9e0; Quantum Golomb Spacetime Simulator</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="-quantum-golomb-spacetime-simulator">🧠 Quantum Golomb Spacetime Simulator</h1>
+<blockquote>
+<h2 id="my-spacetime-is-made-of-numbers-and-poor-decisions"><em>My Spacetime is Made of Numbers and Poor Decisions</em></h2>
+<h3 id="inside-the-quantum-golomb-simulator-that-accidentally-discovered-the-universe"><em>Inside the Quantum Golomb Simulator That Accidentally Discovered the Universe</em></h3>
+</blockquote>
+<p><img src="file:////Users/ralf/Projects/Python/Spacetime/Quantum_Golomb_Spacetime_Analysis.png" alt="Quantum Golomb Spacetime"></p>
+<blockquote>
+<p><em>“Some say the universe began with a bang. This one began with <code>[0, 1]</code> and a poorly tuned random number generator.”</em></p>
+</blockquote>
+<hr>
+<h2 id="-overview">📌 Overview</h2>
+<p>This project simulates a playful model of spacetime growth inspired by:</p>
+<ul>
+<li>🧮 <strong>Golomb rulers</strong></li>
+<li>🎲 <strong>Quantum fluctuations</strong></li>
+<li>🌌 <strong>Curved geometry</strong></li>
+<li>🕸 <strong>Causal networks</strong></li>
+</ul>
+<p>While not physically rigorous, the simulator explores how <em>structure, density, and curvature</em> can emerge from simple number-theoretic rules—rendered with surprisingly rich visualizations.</p>
+<hr>
+<h2 id="-what-is-a-quantum-golomb-spacetime">📐 What Is a Quantum Golomb Spacetime?</h2>
+<p>A <strong>Golomb ruler</strong> is a set of integers (marks) such that all pairwise distances are unique.</p>
+<p>In this simulator:</p>
+<ul>
+<li>Each mark is treated as a <strong>discrete event</strong> in time.</li>
+<li>New marks are added via a <strong>temperature-driven growth process</strong>.</li>
+<li>A synthetic <strong>matter–curvature interaction</strong> perturbs new candidates.</li>
+<li>The result is embedded in <strong>polar coordinates</strong>, giving rise to:
+<ul>
+<li>Mass density fields</li>
+<li>Local curvature</li>
+<li>Causal structure</li>
+<li>Fractal geometry</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>⚠️ This is not quantum gravity—just quantum creativity.</p>
+</blockquote>
+<hr>
+<h2 id="-step-1-birth-of-the-universe">🌱 Step 1: Birth of the Universe</h2>
+<p>We begin with two marks:</p>
+<pre><code class="language-python">simulator = QuantumGolombSpacetime(initial_marks=[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>])
+simulator.quantum_growth(max_marks=<span class="hljs-number">40</span>, temperature=<span class="hljs-number">0.1</span>)
+</code></pre>
+<p>Growth proceeds by probabilistically selecting the next valid integer that maintains the Golomb condition (no repeated distances). The <code>temperature</code> parameter controls how chaotic the search is:</p>
+<ul>
+<li><strong>Low T</strong> → Conservative, stable expansion</li>
+<li><strong>High T</strong> → Chaotic, entropy-maximizing behavior</li>
+</ul>
+<hr>
+<h2 id="-step-2-mattercurvature-coupling">🔀 Step 2: Matter–Curvature Coupling</h2>
+<p>Once the system has enough marks, new ones are influenced by a toy-model &quot;gravity&quot; field based on local curvature:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Potential</mtext><mo>∼</mo><munder><mo>∑</mo><mi>i</mi></munder><mfrac><msub><mi>ρ</mi><mi>i</mi></msub><mrow><msubsup><mi>d</mi><mi>i</mi><mn>2</mn></msubsup><mo>+</mo><mi>ε</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{Potential} \sim \sum_i \frac{\rho_i}{d_i^2 + \varepsilon}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord">Potential</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3852em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7959em;"><span style="top:-2.4231em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.0448em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2769em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">ε</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9629em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>Where:</p>
+<ul>
+<li>$\rho_i$ = local matter density</li>
+<li>$d_i$ = distance to existing mark $i$</li>
+</ul>
+<p>This coupling perturbs new candidates and introduces asymmetry and feedback.</p>
+<hr>
+<h2 id="-step-3-polar-embedding">🌀 Step 3: Polar Embedding</h2>
+<p>Each mark is mapped into 2D using polar coordinates:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>x</mi><mo>=</mo><mi>r</mi><mo>⋅</mo><mi>cos</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="1em"/><mi>y</mi><mo>=</mo><mi>r</mi><mo>⋅</mo><mi>sin</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x = r \cdot \cos(\theta), \quad y = r \cdot \sin(\theta)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">cos</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">sin</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span></span></span></span></span></p>
+<p>Where:</p>
+<ul>
+<li>$r$ = log-scaled radial distance from origin</li>
+<li>$\theta$ = angular position around the circle (uniform spacing)</li>
+</ul>
+<p>This creates a spiraling spacetime diagram that reveals geometric clustering and local tension.</p>
+<hr>
+<h2 id="-step-4-mass-density-and-fractal-geometry">🌌 Step 4: Mass Density and Fractal Geometry</h2>
+<p>The polar embedding is converted into a 2D density map using Gaussian-smoothed binning. We then estimate the <strong>fractal dimension</strong> using box-counting:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>D</mi><mo>=</mo><munder><mrow><mi>lim</mi><mo>⁡</mo></mrow><mrow><mi>ε</mi><mo>→</mo><mn>0</mn></mrow></munder><mfrac><mrow><mi>log</mi><mo>⁡</mo><mi>N</mi><mo stretchy="false">(</mo><mi>ε</mi><mo stretchy="false">)</mo></mrow><mrow><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>ε</mi><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">D = \lim_{\varepsilon \to 0} \frac{\log N(\varepsilon)}{\log(1/\varepsilon)}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-2.3829em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ε</span><span class="mrel mtight">→</span><span class="mord mtight">0</span></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop">lim</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7171em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord">1/</span><span class="mord mathnormal">ε</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mopen">(</span><span class="mord mathnormal">ε</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<blockquote>
+<p>Example result: <code>Estimated fractal dimension: 2.181</code></p>
+</blockquote>
+<p>This value suggests dimensional emergence or compactified structure.</p>
+<hr>
+<h2 id="-step-5-fft-of-the-density-field">🔊 Step 5: FFT of the Density Field</h2>
+<p>We apply a 2D Fast Fourier Transform (FFT) to the mass density map. This reveals:</p>
+<ul>
+<li>Radial and angular <strong>symmetries</strong></li>
+<li>Hidden <strong>periodicities</strong></li>
+<li>Noise or self-similarity signatures</li>
+</ul>
+<hr>
+<h2 id="-step-6-causal-network-construction">🧭 Step 6: Causal Network Construction</h2>
+<p>We build a causal graph where:</p>
+<ul>
+<li><strong>Nodes</strong> = Events (marks)</li>
+<li><strong>Edges</strong> = Future-directed links based on angular proximity</li>
+<li><strong>Weights</strong> encode difficulty of information transfer:</li>
+</ul>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>w</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><msub><mi>ρ</mi><mi>i</mi></msub><mrow><mi mathvariant="normal">Δ</mi><msub><mi>t</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>⋅</mo><mo stretchy="false">(</mo><mi mathvariant="normal">Δ</mi><msub><mi>θ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><mi>δ</mi><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">w_{ij} = \frac{\rho_i}{\Delta t_{ij} \cdot (\Delta\theta_{ij} + \delta)}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0797em;vertical-align:-0.9721em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">Δ</span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9721em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>The graph reflects how events influence each other, with metrics like:</p>
+<ul>
+<li>Causal connection density</li>
+<li>Average path length</li>
+<li>Degree–matter correlation</li>
+</ul>
+<hr>
+<h2 id="-diagnostics-quantum-physics-with-a-wink">📊 Diagnostics: Quantum Physics with a Wink</h2>
+<h3 id="-quantum-fluctuations">🧬 Quantum Fluctuations</h3>
+<p>Average deviation from uniform growth is computed as:</p>
+<pre><code class="language-python">Quantum Fluctuation = mean(<span class="hljs-built_in">abs</span>(∆position - <span class="hljs-number">1</span>))
+</code></pre>
+<p>Captures jitter introduced by temperature and curvature feedback.</p>
+<hr>
+<h3 id="-curvaturematter-feedback">🌐 Curvature–Matter Feedback</h3>
+<p>We compute <strong>local curvature</strong> from nearest-neighbor triangles. Higher curvature regions receive more &quot;matter&quot;—mimicking attraction.</p>
+<hr>
+<h3 id="️-energy-balance-kind-of">⚖️ Energy Balance (Kind Of)</h3>
+<p>A toy-model energy proxy is defined as:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Energy</mtext><mo>∼</mo><mfrac><mtext>Total Matter</mtext><mtext>Average Curvature</mtext></mfrac></mrow><annotation encoding="application/x-tex">\text{Energy} \sim \frac{\text{Total Matter}}{\text{Average Curvature}}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Energy</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2519em;vertical-align:-0.8804em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Average Curvature</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Total Matter</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>This ratio is tracked across growth to observe pseudo-conservation behavior.</p>
+<hr>
+<h2 id="-visualization-dashboard">📈 Visualization Dashboard</h2>
+<p>The simulator outputs a 6-panel visual summary:</p>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Content Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📍</td>
+<td>Polar Embedding (r, θ)</td>
+</tr>
+<tr>
+<td>🌋</td>
+<td>Smoothed Mass Density</td>
+</tr>
+<tr>
+<td>🔊</td>
+<td>FFT of Density Field</td>
+</tr>
+<tr>
+<td>🪐</td>
+<td>Local Curvature Map</td>
+</tr>
+<tr>
+<td>🌐</td>
+<td>Causal Network Diagram</td>
+</tr>
+<tr>
+<td>🌈</td>
+<td>Matter Density per Event</td>
+</tr>
+</tbody>
+</table>
+<p>All panels include colorbars and standardized axis ratios for interpretability.</p>
+<hr>
+<h2 id="-summary-of-findings">🧠 Summary of Findings</h2>
+<p>While this simulation is fictional and symbolic, it provides:</p>
+<ul>
+<li>A <strong>sandbox for emergent structure</strong> from simple constraints</li>
+<li>A new way to look at <strong>Golomb uniqueness as causal order</strong></li>
+<li>Feedback loops between <strong>matter, curvature, and event layout</strong></li>
+<li>Visual metaphors for <strong>dimensional compactification</strong>, <strong>causal flow</strong>, and <strong>quantum foam</strong></li>
+</ul>
+<hr>
+<h2 id="-philosophical-addendum">💡 Philosophical Addendum</h2>
+<blockquote>
+<p>“My universe grew, curved, pulsed, and linked. All from <code>[0, 1]</code>.
+Just like ours—chaotic, kind of pretty, and mostly made up.”</p>
+</blockquote>
+<p>You may not find a Theory of Everything, but you might:</p>
+<ul>
+<li>Build intuition for emergent geometry</li>
+<li>Appreciate discrete structures as creative fuel</li>
+<li>Laugh at causality’s LinkedIn behavior</li>
+</ul>
+<hr>
+<h2 id="-requirements">🛠 Requirements</h2>
+<pre><code class="language-bash">pip install numpy matplotlib scipy scikit-learn networkx scikit-image
+</code></pre>
+<hr>
+<h2 id="️-note">⚠️ Note</h2>
+<p>This simulator is designed for <strong>exploration and metaphor</strong>, not physical accuracy.
+But it might replace your existential dread with constructive curiosity.</p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>
