@@ -6,13 +6,13 @@ This appendix provides a deeper theoretical framing of the **Quantum Golomb Spac
 
 ## ⏱️ Golomb Rulers as Quantum Events
 
-A **Golomb ruler** is a set of marks $$\{m_1, m_2, \dots, m_n\}$$ such that all pairwise distances $$ |m_i - m_j| $$ are unique.
+A **Golomb ruler** is a set of marks $$\{m_1, m_2, \dots, m_n\}$$ such that all pairwise distances $$|m_i - m_j|$$ are unique.
 
 In this simulation:
 
 - Each mark is interpreted as a **quantum event** — a point in an emergent discrete spacetime.
 - Unique distances prevent overlap or redundancy:  
-  $$ \forall i < j < k < l,\quad |m_i - m_j| \ne |m_k - m_l| $$
+  $$\forall i < j < k < l,\quad |m_i - m_j| \ne |m_k - m_l|$$
 - This constraint echoes **unitarity**: events/states remain distinct, preventing metric degeneracy.
 
 ---
@@ -22,7 +22,7 @@ In this simulation:
 The ruler evolves probabilistically:
 
 - New candidates are added based on thermal likelihood:  
-  $$ P(n) \sim \exp\left(-\frac{n}{T}\right) $$
+  $$P(n) \sim \exp\left(-\frac{n}{T}\right)$$
 - **Low temperature** ⇒ deterministic expansion.  
 - **High temperature** ⇒ chaotic, fluctuation-driven growth.
 
@@ -35,7 +35,7 @@ This behavior mirrors **quantum tunneling** or **vacuum fluctuations**, where ra
 Before spatial embedding, each new mark is influenced by existing **matter density**:
 
 - A potential is computed:  
-  $$ V(n) += \sum_i \frac{\rho_i}{(n - m_i)^2} $$
+  $$V(n) += \sum_i \frac{\rho_i}{(n - m_i)^2}$$
 - The candidate is nudged based on this numeric field, simulating **gravitational attraction** or **scalar field gradients**.
 
 This phase introduces **proto-curvature** — a bias in the numeric structure that sets up geometric distortion before embedding.
@@ -47,29 +47,29 @@ This phase introduces **proto-curvature** — a bias in the numeric structure th
 After enough marks exist, we embed them into polar space:
 
 - Angle:  
-  $$ \theta_k = \frac{2\pi (k-1)}{N} $$
+  $$\theta_k = \frac{2\pi (k-1)}{N}$$
 - Radius:  
-  $$ r_k = \log(1 + m_k) $$
+  $$r_k = \log(1 + m_k)$$
 
 This allows us to define **extrinsic curvature** based on angular bending between neighbors. If $$ p_0, p_1, p_2 $$ are consecutive marks, curvature is estimated from:
 
-- The angle between vectors $$ \vec{p_1} - \vec{p_0} $$ and $$ \vec{p_2} - \vec{p_0} $$
+- The angle between vectors $$\vec{p_1} - \vec{p_0}$$ and $$\vec{p_2} - \vec{p_0}$$
 - Resulting curvature approximated via a discrete analog to  
-  $$ K \sim \frac{\pi - \angle(p_1, p_2)}{||p_1 - p_0|| \cdot ||p_2 - p_0||} $$
+  $$K \sim \frac{\pi - \angle(p_1, p_2)}{||p_1 - p_0|| \cdot ||p_2 - p_0||}$$
 
 ---
 
 ## 📊 Fractal Structure
 
-We analyze the **mass-energy density** $$ \rho(x, y) $$ across a grid and compute:
+We analyze the **mass-energy density** $$\rho(x, y)$$ across a grid and compute:
 
 - A **box-counting dimension**:  
-  $$ D = \lim_{\epsilon \to 0} \frac{\log N(\epsilon)}{\log(1/\epsilon)} $$
+  $$D = \lim_{\epsilon \to 0} \frac{\log N(\epsilon)}{\log(1/\epsilon)}$$
 
 Observed values:
 
-- $$ D \approx 2.1 - 2.3 $$ for early stages (suggests extra compactified dimensions)
-- $$ D \to 2.0 $$ as growth continues (dimensionally flattened structure)
+- $$D \approx 2.1 - 2.3$$ for early stages (suggests extra compactified dimensions)
+- $$D \to 2.0$$ as growth continues (dimensionally flattened structure)
 
 This behavior loosely parallels **quantum foam → classical spacetime transition**.
 
@@ -81,17 +81,17 @@ We define a directed causal graph:
 
 - Each mark is a node.
 - An edge $$ i \to j $$ exists if:
-  - $$ m_j > m_i $$
-  - $$ |\theta_j - \theta_i| < \pi $$
+  - $$m_j > m_i$$
+  - $$|\theta_j - \theta_i| < \pi$$
 - Edge weights simulate travel cost:  
-  $$ w_{ij} = \frac{\rho_i}{(dt_{ij})(d\theta_{ij} + \epsilon)} $$
+  $$w_{ij} = \frac{\rho_i}{(dt_{ij})(d\theta_{ij} + \epsilon)}$$
 
 Metrics computed:
 
 - Causal connection density
 - Average message travel time
 - Degree–matter correlation  
-  $$ \text{corr}(\rho_i, \text{out-degree}_i) $$
+  $$\text{corr}(\rho_i, \text{out-degree}_i)$$
 
 ---
 
@@ -99,10 +99,10 @@ Metrics computed:
 
 We approximate a toy energy conservation principle:
 
-- Total Matter: $$ \sum_i \rho_i $$
-- Average Curvature: $$ \langle K \rangle $$
+- Total Matter: $$\sum_i \rho_i$$
+- Average Curvature: $$\langle K \rangle$$
 - Energy balance:  
-  $$ E = \frac{\sum_i \rho_i}{\langle |K| \rangle} $$
+  $$E = \frac{\sum_i \rho_i}{\langle |K| \rangle}$$
 
 Stable systems tend to show a near-constant $$ E $$ over time, implying a balance between numeric distortion and curvature.
 
