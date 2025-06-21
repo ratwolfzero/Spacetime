@@ -1,6 +1,6 @@
 # 🧠 ANNEX — The Physics Behind the Quantum Golomb Simulator
 
-This appendix provides a deeper theoretical framing of the **Quantum Golomb Spacetime Simulator**, intended for physicists, mathematicians, and simulation enthusiasts interested in the analogies behind the code.
+This appendix provides a deeper theoretical framing of the **Quantum Golomb Spacetime Simulator**, intended for those interested in the analogies behind the code.
 
 ---
 
