@@ -229,6 +229,10 @@ Note on Computational Artifacts
 
 While some features may stem from numerical artifacts or boundary effects, the central insight holds: complexity and geometry can emerge from minimalist, rule-based logic. This model isn’t a literal blueprint of spacetime — but it consistently produces structured behavior from simple combinatorial constraints, making it a valuable tool for intuition and exploration
 
+Note on Golomb search limit:  
+
+All visualizations shown here use a Golomb search limit of 1000. Pushing this limit to 10,000 alters the growth dynamics and dimensional scaling.
+
 ---
 
 ## 🧠 Quick Summary: Physics Behind the Simulator
