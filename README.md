@@ -224,3 +224,39 @@ pip install numpy matplotlib scipy scikit-learn networkx scikit-image
 
 This simulator is designed for **exploration and metaphor**, not physical accuracy.
 But it might replace your existential dread with constructive curiosity.
+
+---
+
+## 🧠 Quick Summary: Physics Behind the Simulator
+
+> See full annex: [ANNEX\_PhysicsBehindTheSimulator.md](./ANNEX_PhysicsBehindTheSimulator.md)
+
+1. **Golomb Rulers = Distinct Quantum Events**
+   Unique distances prevent overlap — like enforcing unitarity in quantum systems.
+
+2. **Thermal Growth = Quantum Fluctuations**
+   Randomized mark addition simulates vacuum noise or inflation-like expansion.
+
+3. **Matter Density = Mass-Energy Field**
+   Each mark contributes to a local scalar field influencing future growth.
+
+4. **Numeric Potential = Proto-Curvature**
+   Attraction toward denser regions mimics curvature before geometry exists.
+
+5. **Polar Embedding = Emergent Geometry**
+   Spatial coordinates are constructed, revealing extrinsic curvature and structure.
+
+6. **Fractal Dimension = Spacetime Texture**
+   Dimension $D$ evolves from chaotic >2.0 to smooth \~2.0, reflecting emergence.
+
+7. **Causal Network = Information Flow**
+   Directed edges encode relativistic causal relations between events.
+
+8. **Spectral FFT = Hidden Structure**
+   Fourier analysis of matter density reveals holographic/spectral patterns.
+
+9. **Curvature vs. Matter = Balance Law**
+   A toy energy-like quantity $E = \rho / \langle K \rangle$ remains approximately stable.
+
+10. **Dimensional Emergence**
+    Early universe is foamy and noisy; later universe becomes geometric and causal.
