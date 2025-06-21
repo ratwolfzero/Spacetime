@@ -6,7 +6,7 @@ This appendix provides a deeper theoretical framing of the **Quantum Golomb Spac
 
 ## ⏱️ Golomb Rulers as Quantum Events
 
-A **Golomb ruler** is a set of marks $$ \{m_1, m_2, \dots, m_n\} $$ such that all pairwise distances $$ |m_i - m_j| $$ are unique.
+A **Golomb ruler** is a set of marks $$\{m_1, m_2, \dots, m_n\}$$ such that all pairwise distances $$ |m_i - m_j| $$ are unique.
 
 In this simulation:
 
