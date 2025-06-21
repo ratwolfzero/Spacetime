@@ -225,7 +225,9 @@ pip install numpy matplotlib scipy scikit-learn networkx scikit-image
 This simulator is designed for **exploration and metaphor**, not physical accuracy.
 But it might replace your existential dread with constructive curiosity.  
 
-Even if some features arise from numerical artifacts or boundary effects, the core insight holds: complexity and geometry can emerge from minimalistic, rule-based logic. The value of the model lies not in literal prediction, but in demonstrating how structured behavior — like curvature–matter coupling, causal ordering, or dimensional flow — can arise consistently from simple combinatorial constraints. This makes it a useful intuition pump, even if it’s not a direct mirror of physical spacetime.
+Note on Computational Artifacts
+
+While some features may stem from numerical artifacts or boundary effects, the central insight holds: complexity and geometry can emerge from minimalist, rule-based logic. This model isn’t a literal blueprint of spacetime — but it consistently produces structured behavior from simple combinatorial constraints, making it a valuable tool for intuition and exploration
 
 ---
 
