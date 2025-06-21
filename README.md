@@ -58,9 +58,11 @@ Growth proceeds by probabilistically selecting the next valid integer that maint
 
 ---
 
-## 🔀 Step 2: Matter–Curvature Coupling
+## 🔀 Step 2: Quantum Decisions (and Other Mistakes)
 
-Once the system has enough marks, new ones are influenced by a toy-model "gravity" field based on local curvature:
+The system's growth isn't deterministic — it's guided by temperature-controlled randomness.
+Low temperatures yield precise, deliberate mark choices; high temperatures allow chaotic, exploratory additions.
+Starting from the third mark onward, growth becomes influenced by an emergent interaction:
 
 $$
 \text{Potential} \sim \sum_i \frac{\rho_i}{d_i^2 + \varepsilon}
@@ -71,7 +73,8 @@ Where:
 - \$\rho\_i\$ = local matter density
 - \$d\_i\$ = distance to existing mark \$i\$
 
-This coupling perturbs new candidates and introduces asymmetry and feedback.
+This interaction biases the selection of new candidates, introducing asymmetry and reinforcing local structure.
+Though **curvature** is formally introduced in Step 3, this effect lays the groundwork — subtly shaping how space (and regret) unfold.
 
 ---
 
