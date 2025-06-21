@@ -104,7 +104,7 @@ We approximate a toy energy conservation principle:
 - Energy balance:  
   $$E = \frac{\sum_i \rho_i}{\langle |K| \rangle}$$
 
-Stable systems tend to show a near-constant $$ E $$ over time, implying a balance between numeric distortion and curvature.
+Stable systems tend to show a near-constant $$E$$ over time, implying a balance between numeric distortion and curvature.
 
 ---
 
