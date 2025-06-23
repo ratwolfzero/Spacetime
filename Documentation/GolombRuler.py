@@ -17,14 +17,14 @@ ax.hlines(y=0.5, xmin=0, xmax=length, color='black', linewidth=2)
 # Plot ticks and labels
 for x in marks:
     ax.vlines(x, 0.3, 0.7, color='black', linewidth=2)
-    ax.text(x, 0.75, f"{x}", ha='center', fontsize=12, fontweight='bold')
+    ax.text(x, 0.75, f"{x}", ha='center', fontsize=14, fontweight='bold')
 
 # Optionally: draw unique distance labels above the line
 pairs = list(itertools.combinations(marks, 2))
 distances = {abs(j - i): (i, j) for i, j in pairs}  # use a dict to avoid duplicates
 for d, (i, j) in sorted(distances.items()):
     xm = (i + j) / 2
-    ax.text(xm, 0.95, f"{d}", ha='center', fontsize=10, color='blue')
+    ax.text(xm, 0.95, f"{d}", ha='center', fontsize=12, color='blue')
 
 # Save the figure
 plt.tight_layout()
