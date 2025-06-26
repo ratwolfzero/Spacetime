@@ -150,7 +150,7 @@ class DeterministicGolombUniverse:
         y = r * np.sin(theta)
 
         plt.figure(figsize=(8, 8))
-        sc = plt.scatter(x, y, c=self.marks, cmap='viridis', s=50, edgecolors='k', linewidth=0.5)
+        sc = plt.scatter(x, y, c=self.marks, cmap='viridis', s=30, edgecolors='k', linewidth=0.2)
         plt.colorbar(sc, label='Temporal Position (Mark Value)')
         plt.title(f"Deterministic Golomb Universe: Polar Embedding (N={n} Marks)")
         plt.xlabel("X (Emergent Space)")
@@ -166,16 +166,16 @@ if __name__ == "__main__":
     # Grow the universe to a moderate number of marks to clearly see distances
     # Too many marks (e.g., > 12-15) will make the distance plot very cluttered
     # I've set it to 10 for optimal visibility of distance lines for now.
-    universe_simulator.grow(max_marks=5)
+    universe_simulator.grow(max_marks=7)
 
     # Plot the marks linearly
-    #universe_simulator.plot_marks_linear()
+    universe_simulator.plot_marks_linear()
 
     # Plot the marks with their unique distances (new visualization)
     universe_simulator.plot_distances_linear()
 
     # Plot the polar embedding
-    #universe_simulator.plot_polar_embedding(log_scaling=True)
+    universe_simulator.plot_polar_embedding(log_scaling=True)
 
     print("\nGenerated Golomb Ruler Marks:", universe_simulator.marks)
     print("All unique distances (count):", len(universe_simulator.distances))
