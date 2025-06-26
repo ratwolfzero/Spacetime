@@ -166,7 +166,7 @@ if __name__ == "__main__":
     # Grow the universe to a moderate number of marks to clearly see distances
     # Too many marks (e.g., > 12-15) will make the distance plot very cluttered
     # I've set it to 10 for optimal visibility of distance lines for now.
-    universe_simulator.grow(max_marks=7)
+    universe_simulator.grow(max_marks=4)
 
     # Plot the marks linearly
     universe_simulator.plot_marks_linear()
