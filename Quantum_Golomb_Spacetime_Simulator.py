@@ -324,7 +324,7 @@ class QuantumGolombSpacetime:
         if len(self.curvatures) > 0:
             curvature_range = np.ptp(self.curvatures)
             avg_matter = np.mean(self.matter_density)
-            print(f"\nMATTER-CURVATURE COUPLING:")
+            print("\nMATTER-CURVATURE COUPLING:")
             print(
                 f"- Curvature Range: {curvature_range:.4f} (High = Strong Gravity Wells)")
             print(f"- Avg Matter Density: {avg_matter:.4f}")
@@ -336,7 +336,7 @@ class QuantumGolombSpacetime:
             deviations = positions[1:] - positions[:-1] - 1
             quantum_fluct = np.mean(np.abs(deviations))
             avg_position = np.mean(positions)
-            print(f"\nQUANTUM FLUCTUATIONS:")
+            print("\nQUANTUM FLUCTUATIONS:")
             print(
                 f"- Avg Position Deviation: {quantum_fluct:.4f} (Classical=0)")
             if avg_position > 0:
@@ -348,7 +348,7 @@ class QuantumGolombSpacetime:
         if hasattr(self, 'avg_causal_path') and hasattr(self, 'matter_degree_corr'):
             causal_efficiency = self.avg_causal_path / \
                 np.ptp(self.marks) if np.ptp(self.marks) > 0 else 0
-            print(f"\nCAUSAL STRUCTURE:")
+            print("\nCAUSAL STRUCTURE:")
             print(
                 f"- Causal Efficiency: {causal_efficiency:.4f} (Lower = Faster Information Flow)")
             print(
@@ -362,7 +362,7 @@ class QuantumGolombSpacetime:
             total_matter = np.sum(self.matter_density)
             avg_curvature = np.mean(np.abs(self.curvatures))
             energy_balance = total_matter / (avg_curvature + 1e-8)
-            print(f"\nENERGY CONSERVATION:")
+            print("\nENERGY CONSERVATION:")
             print(f"- Total Matter: {total_matter:.4f}")
             print(f"- Avg Curvature: {avg_curvature:.4f}")
             print(
