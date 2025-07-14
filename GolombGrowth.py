@@ -92,7 +92,12 @@ def plot_golomb_graph(G: list[int]):
     
     actual_energy = spatial_energy(G)
     max_energy = estimated_max_energy(len(G))
-    plt.title(f"Golomb Graph for Sequence {G}\nSpatial Energy: {actual_energy:.4f}, Theoretical Maximun: {max_energy:.4f}", fontsize=12)
+    plt.title(
+        f"\nGolomb Graph for Sequence {G}\n"
+        f"Combinatorial Entropy (max distinctions): {entropy_val}\n"
+        f"Spatial Energy: {actual_energy:.4f}, Theoretical Maximum: {max_energy:.4f}", 
+        fontsize=12
+    )
     
     plt.axis('off')
     plt.gca().set_aspect('equal')
@@ -109,7 +114,7 @@ if __name__ == "__main__":
     print(f"Combinatorial Entropy (max distinctions): {entropy_val}")
     
     energy_val = spatial_energy(golomb_sequence)
-    print(f"Energy (sum of inverse distances): {energy_val:.4f}")
+    print(f"Spatial Energy (sum of inverse distances): {energy_val:.4f}")
     
     max_energy_val = estimated_max_energy(len(golomb_sequence))
     print(f"Estimated max energy for {len(golomb_sequence)} marks: {max_energy_val:.4f}")
