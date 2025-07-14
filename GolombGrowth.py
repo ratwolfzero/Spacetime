@@ -8,6 +8,22 @@ def golomb_grow(n: int) -> list[int]:
     """
     Generates a Golomb ruler of 'n' marks using an iterative growth approach,
     as derived from the axiomatic framework.
+
+    The algorithm iteratively adds marks to the ruler. For each new mark,
+    it starts by testing the smallest possible integer greater than the
+    last added mark (`G[-1] + 1`). It then **increments this candidate mark (`m`)**
+    by one until it finds a value that generates only **unique distinctions**.
+    "Unique distinctions" means that the absolute differences between the
+    candidate mark and all existing marks in the ruler (`G`) must not
+    already exist in the set of previously found distinctions (`D`) and
+    must not duplicate among themselves. This iterative search for the
+    smallest valid `m` ensures the construction of a minimal Golomb ruler.
+
+    Args:
+        n (int): The desired number of marks for the Golomb ruler.
+
+    Returns:
+        list[int]: A list representing the Golomb ruler sequence.
     """
     G = [0]  # The Golomb ruler sequence, initialized with 0 (Axiom 0)
     D = set()  # Set to store all unique distinctions found so far (Axiom II)
@@ -50,7 +66,7 @@ def entropy_fn(n: int) -> int:
 
 def spatial_energy(G: list[int]) -> float:
     """
-    Calculates 'spatial energy': a figurative metric based on 
+    Calculates 'spatial energy': a figurative metric based on
     the sum of inverse distances between all pairs of marks.
 
     Higher spatial energy implies more compact and constrained configurations.
