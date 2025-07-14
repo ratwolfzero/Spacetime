@@ -58,7 +58,7 @@ def spatial_energy(G: list[int]) -> float:
 
 def estimated_max_energy(n: int) -> float:
     """
-    Estimate the maximum theoretical energy for n marks,
+    Estimate the maximum theoretical spatial energy for n marks,
     assuming distances are the first n(n-1)/2 integers.
     Uses harmonic number approximation: H_m ≈ ln(m) + γ,
     where m = number of unique pairs = n(n-1)/2.
