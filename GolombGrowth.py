@@ -5,7 +5,6 @@ from itertools import combinations
 from math import log
 
 
-
 def golomb_grow(n: int) -> list[int]:
     """
     Generates a Golomb ruler of 'n' marks using an iterative growth approach,
@@ -70,7 +69,7 @@ def spatial_energy(G: list[int]) -> float:
     """
     Calculates 'spatial energy': a figurative metric based on
     the sum of inverse distances between all pairs of marks.
-							 
+
     Higher spatial energy implies more compact and constrained configurations.
     """
     if not G or len(G) < 2:
@@ -96,10 +95,10 @@ def plot_golomb_graph(G: list[int]):
     Displays actual energy and estimated maximum energy in the title.
     """
     g = nx.Graph()
-    g.add_nodes_from(G)                                       
+    g.add_nodes_from(G)
     edges = [(a, b, {'weight': abs(a-b)}) for a, b in combinations(G, 2)]
     g.add_edges_from(edges)
-							  
+
     pos = nx.circular_layout(g)
 
     plt.figure(figsize=(10, 10))
@@ -122,13 +121,12 @@ def plot_golomb_graph(G: list[int]):
         f"Spatial Energy: {actual_energy:.4f}, Theoretical Maximum: {max_energy:.4f}",
         fontsize=12
     )
-															  
+
     plt.axis('off')
     plt.gca().set_aspect('equal')
     plt.tight_layout()
-    plt.show()                                          
-    
-   
+    plt.show()
+
 
 def uniqueness_ratio(G: list[int]) -> float:
     n = len(G)
@@ -136,11 +134,12 @@ def uniqueness_ratio(G: list[int]) -> float:
     diffs = set(abs(a - b) for a, b in combinations(G, 2))
     return len(diffs) / max_diffs
 
+
 def compute_stats_for_n(n: int):
     lattice = list(range(n))
     random_seq = sorted(random.sample(range(10 * n), n))
     golomb_seq = golomb_grow(n)
-    
+
     data = []
     for label, seq in [('Lattice', lattice), ('Random', random_seq), ('Golomb', golomb_seq)]:
         uniq = uniqueness_ratio(seq)
@@ -148,37 +147,39 @@ def compute_stats_for_n(n: int):
         data.append((label, n, uniq, energy))
     return data
 
+
 def plot_uniqueness_vs_energy(ns):
     all_data = []
     for n in ns:
         all_data.extend(compute_stats_for_n(n))
-    
+
     import matplotlib.pyplot as plt
-    
+
     fig, ax = plt.subplots(figsize=(10, 6))
     markers = {'Lattice': 'o', 'Random': 's', 'Golomb': '^'}
     colors = {'Lattice': 'red', 'Random': 'orange', 'Golomb': 'green'}
-													
+
     for label in markers.keys():
         xs = [d[2] for d in all_data if d[0] == label]
         ys = [d[3] for d in all_data if d[0] == label]
         ns_plot = [d[1] for d in all_data if d[0] == label]
-        sc = ax.scatter(xs, ys, label=label, marker=markers[label], color=colors[label], s=30, alpha=0.7)
+        sc = ax.scatter(
+            xs, ys, label=label, marker=markers[label], color=colors[label], s=30, alpha=0.7)
         for x, y, n in zip(xs, ys, ns_plot):
             if n in [100]:  # annotate key points only for clarity
-                ax.annotate(f'n={n}', (x, y), textcoords="offset points", xytext=(5,5), ha='left', fontsize=9)
-                
-      
-    
-    ax.set_xlabel('Uniqueness Ratio (Unique Distances / Max Distances)', fontsize=12)
+                ax.annotate(f'n={n}', (x, y), textcoords="offset points", xytext=(
+                    5, 5), ha='left', fontsize=9)
+
+    ax.set_xlabel(
+        'Uniqueness Ratio (Unique Distances / Max Distances)', fontsize=12)
     ax.set_ylabel('Spatial Energy (Sum of Inverse Distances)', fontsize=12)
-    ax.set_title('Uniqueness vs Spatial Energy for Different Sequence Types', fontsize=14)
+    ax.set_title(
+        'Uniqueness vs Spatial Energy for Different Sequence Types', fontsize=14)
     ax.legend()
     ax.grid(True)
     plt.tight_layout()
-    plt.show()          
+    plt.show()
 
-																				
 
 # --- Example Usage (Main Execution Block) ---
 if __name__ == "__main__":
@@ -197,6 +198,6 @@ if __name__ == "__main__":
         f"Estimated max energy for {len(golomb_sequence)} marks: {max_energy_val:.4f}")
 
     plot_golomb_graph(golomb_sequence)
-    
+
     ns = [5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100]
     plot_uniqueness_vs_energy(ns)
