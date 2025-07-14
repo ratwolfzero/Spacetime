@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from itertools import combinations
+from math import log
 
 def golomb_grow(n: int) -> list[int]:
     """
@@ -14,19 +15,17 @@ def golomb_grow(n: int) -> list[int]:
         m = G[-1] + 1  # Start searching for the next mark from the previous mark + 1
         new_diffs = [abs(m - x) for x in G]
         is_unique = True
-        # Check against existing distinctions (D) and for internal duplicates among new_diffs
-        # The loop below combines the check for `diff in D` and internal uniqueness for `new_diffs`
         temp_new_diffs_set = set()
         for diff in new_diffs:
-            if diff in D or diff in temp_new_diffs_set: # Embodies Axiom II: Irreducible Uniqueness
+            if diff in D or diff in temp_new_diffs_set:  # Embodies Axiom II: Irreducible Uniqueness
                 is_unique = False
                 break
             temp_new_diffs_set.add(diff)
 
-        while not is_unique: # This loop structure iterates 'm' until a unique candidate is found
+        while not is_unique:  # Iterate 'm' until a unique candidate is found
             m += 1
             new_diffs = [abs(m - x) for x in G]
-            is_unique = True # Reset for the new 'm'
+            is_unique = True
             temp_new_diffs_set = set()
             for diff in new_diffs:
                 if diff in D or diff in temp_new_diffs_set:
@@ -34,9 +33,8 @@ def golomb_grow(n: int) -> list[int]:
                     break
                 temp_new_diffs_set.add(diff)
             
-        # If 'is_unique' is True after the loops, 'm' is valid
-        G.append(m) # This is the "morphism" f: G_k -> G_{k+1} (Axiom III)
-        D.update(temp_new_diffs_set) # Use the set of valid new diffs
+        G.append(m)  # Morphism f: G_k -> G_{k+1} (Axiom III)
+        D.update(temp_new_diffs_set)  # Update set of unique differences
 
     return G
 
@@ -50,59 +48,58 @@ def entropy_fn(n: int) -> int:
 def energy_fn(G: list[int]) -> float:
     """
     Calculates an 'energy' metric for a given Golomb ruler, aligned with Axiom V.
-    This is defined as the sum of inverse distances between all unique pairs.
-    A lower energy (higher sum of inverse distances) implies a more 'compact'
-    or 'efficient' ruler with smaller distances contributing more significantly.
+    Sum of inverse distances between all unique pairs.
     """
     if not G or len(G) < 2:
-        return float('inf') # Or 0.0 depending on desired interpretation for trivial rulers
+        return float('inf')  # Or 0.0 depending on interpretation
     return sum(1.0 / abs(a - b) for a, b in combinations(G, 2))
+
+def estimated_max_energy(n: int) -> float:
+    """
+    Estimate the maximum theoretical energy for n marks,
+    assuming distances are the first n(n-1)/2 integers.
+    Uses harmonic number approximation: H_m ≈ ln(m) + γ,
+    where m = number of unique pairs = n(n-1)/2.
+    """
+    gamma = 0.5772156649  # Euler–Mascheroni constant
+    m = n * (n - 1) // 2  # number of unique pairs
+    return log(m) + gamma
 
 def plot_golomb_graph(G: list[int]):
     """
-    Create and visualize the Golomb ruler as a graph where nodes are marks
-    and edges represent the unique distances between them.
-    Uses NetworkX and Matplotlib.
+    Visualize the Golomb ruler as a graph with nodes as marks and edges as distances.
+    Displays actual energy and estimated maximum energy in the title.
     """
-    # Create graph
     g = nx.Graph()
     g.add_nodes_from(G)
-    # Add edges with their weights (distances)
     edges = [(a, b, {'weight': abs(a-b)}) for a, b in combinations(G, 2)]
     g.add_edges_from(edges)
     
-    # Calculate positions (circular layout provides good separation for this type of graph)
     pos = nx.circular_layout(g)
     
-    # Draw the graph
-    plt.figure(figsize=(10, 10)) # Increased figure size for better visibility
-    
-    # Draw nodes
+    plt.figure(figsize=(10, 10))
     nx.draw_networkx_nodes(g, pos, node_size=700,
                            node_color='lightblue', alpha=0.9, linewidths=1.0, edgecolors='gray')
-    
-    # Draw edges
     nx.draw_networkx_edges(g, pos, width=1.5, alpha=0.7, edge_color='darkgray')
+    nx.draw_networkx_labels(g, pos, font_size=14, font_weight='bold', font_color='black')
     
-    # Draw node labels
-    nx.draw_networkx_labels(g, pos, font_size=14, 
-                             font_weight='bold', font_color='black')
-    
-    # Draw edge labels (distances)
     edge_labels = {(u, v): d['weight'] for u, v, d in g.edges(data=True)}
     nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels,
-                                  font_color='darkgreen', font_size=10,
-                                  bbox=dict(facecolor='white', edgecolor='none', alpha=0.8, boxstyle='round,pad=0.3'))
+                                 font_color='darkgreen', font_size=10,
+                                 bbox=dict(facecolor='white', edgecolor='none', alpha=0.8, boxstyle='round,pad=0.3'))
     
-    plt.title(f"Golomb Graph for Sequence {G}\nEnergy: {energy_fn(G):.2f}, Entropy: {entropy_fn(len(G))}", fontsize=12)
-    plt.axis('off') # Hide axes
-    plt.gca().set_aspect('equal')  # Set equal aspect rati
-    plt.tight_layout() # Adjust layout to prevent labels overlapping
+    actual_energy = energy_fn(G)
+    max_energy = estimated_max_energy(len(G))
+    plt.title(f"Golomb Graph for Sequence {G}\n'Energy': {actual_energy:.4f}, Estimated Max 'Energy': {max_energy:.4f}", fontsize=12)
+    
+    plt.axis('off')
+    plt.gca().set_aspect('equal')
+    plt.tight_layout()
     plt.show()
 
 # --- Example Usage (Main Execution Block) ---
 if __name__ == "__main__":
-    n_marks = 10 # Example for an n-mark Golomb ruler
+    n_marks = 10  # Example for an n-mark Golomb ruler
     golomb_sequence = golomb_grow(n_marks)
     print(f"Golomb sequence for {n_marks} marks: {golomb_sequence}")
     
@@ -112,7 +109,7 @@ if __name__ == "__main__":
     energy_val = energy_fn(golomb_sequence)
     print(f"Energy (sum of inverse distances): {energy_val:.4f}")
     
-    # Visualize the generated Golomb ruler
-    plot_golomb_graph(golomb_sequence)
-
+    max_energy_val = estimated_max_energy(len(golomb_sequence))
+    print(f"Estimated max energy for {len(golomb_sequence)} marks: {max_energy_val:.4f}")
     
+    plot_golomb_graph(golomb_sequence)
