@@ -3,9 +3,8 @@ import networkx as nx
 import random
 from itertools import combinations
 from math import log
-from numba import njit
 
-@njit
+
 def golomb_grow(n: int) -> list[int]:
     """
     Generates a Golomb ruler of 'n' marks using an iterative growth approach,
@@ -184,7 +183,7 @@ def plot_uniqueness_vs_energy(ns):
 
 # --- Example Usage (Main Execution Block) ---
 if __name__ == "__main__":
-    n_marks = 3  # Example for an n-mark Golomb ruler
+    n_marks = 17  # Example for an n-mark Golomb ruler
     golomb_sequence = golomb_grow(n_marks)
     print(f"Golomb sequence for {n_marks} marks: {golomb_sequence}")
 
@@ -198,7 +197,7 @@ if __name__ == "__main__":
     print(
         f"Estimated max energy for {len(golomb_sequence)} marks: {max_energy_val:.4f}")
 
-    #plot_golomb_graph(golomb_sequence)
+    plot_golomb_graph(golomb_sequence)
 
     ns = [5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100]
     plot_uniqueness_vs_energy(ns)
