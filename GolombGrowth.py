@@ -3,6 +3,7 @@ import networkx as nx
 from itertools import combinations
 from math import log
 
+
 def golomb_grow(n: int) -> list[int]:
     """
     Generates a Golomb ruler of 'n' marks using an iterative growth approach,
@@ -32,11 +33,12 @@ def golomb_grow(n: int) -> list[int]:
                     is_unique = False
                     break
                 temp_new_diffs_set.add(diff)
-            
+
         G.append(m)  # Morphism f: G_k -> G_{k+1} (Axiom III)
         D.update(temp_new_diffs_set)  # Update set of unique differences
 
     return G
+
 
 def entropy_fn(n: int) -> int:
     """
@@ -45,16 +47,18 @@ def entropy_fn(n: int) -> int:
     """
     return n * (n - 1) // 2
 
+
 def spatial_energy(G: list[int]) -> float:
     """
     Calculates 'spatial energy': a figurative metric based on 
     the sum of inverse distances between all pairs of marks.
-    
+
     Higher spatial energy implies more compact and constrained configurations.
     """
     if not G or len(G) < 2:
         return float('inf')  # Or 0.0 depending on interpretation
     return sum(1.0 / abs(a - b) for a, b in combinations(G, 2))
+
 
 def estimated_max_energy(n: int) -> float:
     """
@@ -67,6 +71,7 @@ def estimated_max_energy(n: int) -> float:
     m = n * (n - 1) // 2  # number of unique pairs
     return log(m) + gamma
 
+
 def plot_golomb_graph(G: list[int]):
     """
     Visualize the Golomb ruler as a graph with nodes as marks and edges as distances.
@@ -76,47 +81,50 @@ def plot_golomb_graph(G: list[int]):
     g.add_nodes_from(G)
     edges = [(a, b, {'weight': abs(a-b)}) for a, b in combinations(G, 2)]
     g.add_edges_from(edges)
-    
+
     pos = nx.circular_layout(g)
-    
+
     plt.figure(figsize=(10, 10))
     nx.draw_networkx_nodes(g, pos, node_size=700,
                            node_color='lightblue', alpha=0.9, linewidths=1.0, edgecolors='gray')
     nx.draw_networkx_edges(g, pos, width=1.5, alpha=0.7, edge_color='darkgray')
-    nx.draw_networkx_labels(g, pos, font_size=14, font_weight='bold', font_color='black')
-    
+    nx.draw_networkx_labels(g, pos, font_size=14,
+                            font_weight='bold', font_color='black')
+
     edge_labels = {(u, v): d['weight'] for u, v, d in g.edges(data=True)}
     nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels,
                                  font_color='darkgreen', font_size=10,
                                  bbox=dict(facecolor='white', edgecolor='none', alpha=0.8, boxstyle='round,pad=0.3'))
-    
+
     actual_energy = spatial_energy(G)
     max_energy = estimated_max_energy(len(G))
     plt.title(
         f"\nGolomb Graph for Sequence {G}\n"
         f"Combinatorial Entropy (max distinctions): {entropy_val}\n"
-        f"Spatial Energy: {actual_energy:.4f}, Theoretical Maximum: {max_energy:.4f}", 
+        f"Spatial Energy: {actual_energy:.4f}, Theoretical Maximum: {max_energy:.4f}",
         fontsize=12
     )
-    
+
     plt.axis('off')
     plt.gca().set_aspect('equal')
     plt.tight_layout()
     plt.show()
+
 
 # --- Example Usage (Main Execution Block) ---
 if __name__ == "__main__":
     n_marks = 10  # Example for an n-mark Golomb ruler
     golomb_sequence = golomb_grow(n_marks)
     print(f"Golomb sequence for {n_marks} marks: {golomb_sequence}")
-    
+
     entropy_val = entropy_fn(len(golomb_sequence))
     print(f"Combinatorial Entropy (max distinctions): {entropy_val}")
-    
+
     energy_val = spatial_energy(golomb_sequence)
     print(f"Spatial Energy (sum of inverse distances): {energy_val:.4f}")
-    
+
     max_energy_val = estimated_max_energy(len(golomb_sequence))
-    print(f"Estimated max energy for {len(golomb_sequence)} marks: {max_energy_val:.4f}")
-    
+    print(
+        f"Estimated max energy for {len(golomb_sequence)} marks: {max_energy_val:.4f}")
+
     plot_golomb_graph(golomb_sequence)
