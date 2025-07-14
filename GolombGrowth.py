@@ -163,7 +163,7 @@ def plot_uniqueness_vs_energy(ns):
         xs = [d[2] for d in all_data if d[0] == label]
         ys = [d[3] for d in all_data if d[0] == label]
         ns_plot = [d[1] for d in all_data if d[0] == label]
-        sc = ax.scatter(xs, ys, label=label, marker=markers[label], color=colors[label], s=60, alpha=0.7)
+        sc = ax.scatter(xs, ys, label=label, marker=markers[label], color=colors[label], s=30, alpha=0.7)
         for x, y, n in zip(xs, ys, ns_plot):
             if n in [100]:  # annotate key points only for clarity
                 ax.annotate(f'n={n}', (x, y), textcoords="offset points", xytext=(5,5), ha='left', fontsize=9)
