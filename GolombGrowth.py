@@ -94,14 +94,14 @@ def plot_golomb_graph(G: list[int]):
                                   font_color='darkgreen', font_size=10,
                                   bbox=dict(facecolor='white', edgecolor='none', alpha=0.8, boxstyle='round,pad=0.3'))
     
-    plt.title(f"Golomb Graph for Sequence {G}\nEnergy: {energy_fn(G):.4f}, Entropy: {entropy_fn(len(G))}", fontsize=16)
+    plt.title(f"Golomb Graph for Sequence {G}\nEnergy: {energy_fn(G):.4f}, Entropy: {entropy_fn(len(G))}", fontsize=12)
     plt.axis('off') # Hide axes
     plt.tight_layout() # Adjust layout to prevent labels overlapping
     plt.show()
 
 # --- Example Usage (Main Execution Block) ---
 if __name__ == "__main__":
-    n_marks = 10 # Example for an 8-mark Golomb ruler
+    n_marks = 17 # Example for an n-mark Golomb ruler
     golomb_sequence = golomb_grow(n_marks)
     print(f"Golomb sequence for {n_marks} marks: {golomb_sequence}")
     
