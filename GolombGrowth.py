@@ -45,10 +45,12 @@ def entropy_fn(n: int) -> int:
     """
     return n * (n - 1) // 2
 
-def energy_fn(G: list[int]) -> float:
+def spatial_energy(G: list[int]) -> float:
     """
-    Calculates an 'energy' metric for a given Golomb ruler, aligned with Axiom V.
-    Sum of inverse distances between all unique pairs.
+    Calculates 'spatial energy': a figurative metric based on 
+    the sum of inverse distances between all pairs of marks.
+    
+    Higher spatial energy implies more compact and constrained configurations.
     """
     if not G or len(G) < 2:
         return float('inf')  # Or 0.0 depending on interpretation
@@ -88,9 +90,9 @@ def plot_golomb_graph(G: list[int]):
                                  font_color='darkgreen', font_size=10,
                                  bbox=dict(facecolor='white', edgecolor='none', alpha=0.8, boxstyle='round,pad=0.3'))
     
-    actual_energy = energy_fn(G)
+    actual_energy = spatial_energy(G)
     max_energy = estimated_max_energy(len(G))
-    plt.title(f"Golomb Graph for Sequence {G}\n'Energy': {actual_energy:.4f}, Estimated Max 'Energy': {max_energy:.4f}", fontsize=12)
+    plt.title(f"Golomb Graph for Sequence {G}\nSpatial Energy: {actual_energy:.4f}, Theoretical Maximun: {max_energy:.4f}", fontsize=12)
     
     plt.axis('off')
     plt.gca().set_aspect('equal')
@@ -106,7 +108,7 @@ if __name__ == "__main__":
     entropy_val = entropy_fn(len(golomb_sequence))
     print(f"Combinatorial Entropy (max distinctions): {entropy_val}")
     
-    energy_val = energy_fn(golomb_sequence)
+    energy_val = spatial_energy(golomb_sequence)
     print(f"Energy (sum of inverse distances): {energy_val:.4f}")
     
     max_energy_val = estimated_max_energy(len(golomb_sequence))
