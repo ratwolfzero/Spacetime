@@ -233,13 +233,13 @@ def main(n: int, DC: bool = False, windowing: bool = False, window_type: str = '
 # --- Execute the main function ---
 if __name__ == "__main__":
     print("--- Example 1: DC Removed, No Explicit Window (Implicit Rectangular) ---")
-    main(n=17, DC=False, windowing=False) 
+    main(n=10, DC=False, windowing=False) 
 
     print("\n--- Example 2: DC Kept, No Explicit Window (Implicit Rectangular) ---")
-    main(n=17, DC=True, windowing=False) 
+    main(n=10, DC=True, windowing=False) 
 
     print("\n--- Example 3: DC Removed, Hanning Window Applied ---")
-    main(n=17, DC=False, windowing=True, window_type='hanning')
+    main(n=10, DC=False, windowing=True, window_type='hanning')
 
     print("\n--- Example 4: DC Kept, Hanning Window Applied ---")
-    main(n=17, DC=True, windowing=True, window_type='hanning')
+    main(n=10, DC=True, windowing=True, window_type='hanning')
