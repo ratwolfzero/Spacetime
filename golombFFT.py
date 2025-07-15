@@ -104,7 +104,7 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
     axes[0].grid(True)
 
     # FFT Magnitude Spectrum without lines
-    axes[1].plot(freqs, mag, color='lightblue')  # optional background curve
+    axes[1].plot(freqs, mag, color='blue')  # optional background curve
     # axes[1].stem(freqs, mag, basefmt=" ", linefmt='none', markerfmt='bo')
     # axes[1].set_yscale("log")
     axes[1].set_title("FFT Magnitude Spectrum")
@@ -115,7 +115,7 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
 
     # Power Spectrum (log scale) without lines
     # optional background curve
-    axes[2].semilogy(freqs, power, color='lightblue')
+    axes[2].semilogy(freqs, power, color='blue')
     # axes[2].stem(freqs, power, basefmt=" ", linefmt='none', markerfmt='go')
     # axes[2].set_yscale("log")
     axes[2].set_title("Power Spectrum (log scale)")
