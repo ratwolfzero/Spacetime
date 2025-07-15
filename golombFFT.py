@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numba import njit
 
+
 @njit
 def golomb_grow(n: int) -> np.ndarray:
     G = np.zeros(n, dtype=np.int64)
@@ -13,11 +14,11 @@ def golomb_grow(n: int) -> np.ndarray:
 
     while current_length < n:
         m = G[current_length - 1] + 1
-                                    
+
         while True:
             valid = True
             max_diff = 0
-                                     
+
             for i in range(current_length):
                 diff = m - G[i]
                 if diff >= D_size:
@@ -56,12 +57,14 @@ def golomb_grow(n: int) -> np.ndarray:
 
 
 @njit
-def create_signal_from_golomb(G: np.ndarray) -> np.ndarray:
+def create_signal_from_golomb(G: np.ndarray, remove_dc: bool) -> np.ndarray:
     signal = np.zeros(G[-1] + 1)
     signal[G] = 1
-    signal -= np.mean(signal) # Deactivated to keep DC component
+    if remove_dc:
+        signal -= np.mean(signal)
     signal /= np.max(np.abs(signal))
     return signal
+
 
 def compute_spectrum(signal: np.ndarray):
     X = np.fft.fft(signal)
@@ -70,8 +73,9 @@ def compute_spectrum(signal: np.ndarray):
     power = mag ** 2
     return freqs, mag, power
 
+
 def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: np.ndarray, n: int):
-    idx = (freqs > 0) & (freqs <= 0.5)
+    idx = (freqs >= 0) & (freqs <= 0.5)
     freqs = freqs[idx]
     mag = mag[idx]
     power = power[idx]
@@ -85,12 +89,14 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
     neg_idx = signal < 0
 
     # Plot positive values
-    axes[0].stem(time_indices[pos_idx], signal[pos_idx], basefmt=" ", linefmt='b-', markerfmt='bo')
-    
+    axes[0].stem(time_indices[pos_idx], signal[pos_idx],
+                 basefmt=" ", linefmt='b-', markerfmt='bo')
+
     # Only plot negative values if there are any
-    if np.any(neg_idx): # Check if neg_idx is not empty
-        axes[0].stem(time_indices[neg_idx], signal[neg_idx], basefmt=" ", linefmt='r-', markerfmt='ro')
-    
+    if np.any(neg_idx):  # Check if neg_idx is not empty
+        axes[0].stem(time_indices[neg_idx], signal[neg_idx],
+                     basefmt=" ", linefmt='r-', markerfmt='ro')
+
     axes[0].set_xscale("log")
     axes[0].set_title(f"Golomb Signal (n = {n}) - Time Domain")
     axes[0].set_xlabel("Time Index")
@@ -98,9 +104,9 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
     axes[0].grid(True)
 
     # FFT Magnitude Spectrum without lines
-    axes[1].plot(freqs, mag, color='lightgray')  # optional background curve
-    axes[1].stem(freqs, mag, basefmt=" ", linefmt='none', markerfmt='bo')
-    #axes[1].set_yscale("log")
+    axes[1].plot(freqs, mag, color='lightblue')  # optional background curve
+    # axes[1].stem(freqs, mag, basefmt=" ", linefmt='none', markerfmt='bo')
+    # axes[1].set_yscale("log")
     axes[1].set_title("FFT Magnitude Spectrum")
     axes[1].set_xlabel("Frequency")
     axes[1].set_ylabel("Magnitude")
@@ -108,9 +114,10 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
     axes[1].set_xlim(0, 0.5)
 
     # Power Spectrum (log scale) without lines
-    axes[2].semilogy(freqs, power, color='lightgray')  # optional background curve
-    axes[2].stem(freqs, power, basefmt=" ", linefmt='none', markerfmt='go')
-    axes[2].set_yscale("log")
+    # optional background curve
+    axes[2].semilogy(freqs, power, color='lightblue')
+    # axes[2].stem(freqs, power, basefmt=" ", linefmt='none', markerfmt='go')
+    # axes[2].set_yscale("log")
     axes[2].set_title("Power Spectrum (log scale)")
     axes[2].set_xlabel("Frequency")
     axes[2].set_ylabel("Power")
@@ -121,11 +128,12 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
     plt.show()
 
 
-def main(n: int):
+def main(n: int, DC: bool = False):
     G = golomb_grow(n)
-    signal = create_signal_from_golomb(G)
+    signal = create_signal_from_golomb(G, remove_dc=not DC)
     freqs, mag, power = compute_spectrum(signal)
     plot_results(signal, freqs, mag, power, n)
+
 
 # --- Execute ---
 if __name__ == "__main__":
