@@ -10,14 +10,15 @@ def golomb_grow(n: int) -> np.ndarray:
     """
     G = np.zeros(n, dtype=np.int64)
     # D will store whether a difference has been seen. Use a larger initial size.
-    D_size = 1024 
+    D_size = 1024
     D = np.zeros(D_size, dtype=np.bool_)
 
     G[0] = 0
     current_length = 1
 
     while current_length < n:
-        m = G[current_length - 1] + 1  # Start checking from the next integer after the last element
+        # Start checking from the next integer after the last element
+        m = G[current_length - 1] + 1
 
         while True:
             valid = True
@@ -26,16 +27,17 @@ def golomb_grow(n: int) -> np.ndarray:
             # Check if current m creates any repeated differences with existing G elements
             for i in range(current_length):
                 diff = m - G[i]
-                
+
                 # Dynamically resize D if a new difference exceeds its current bounds
                 if diff >= D_size:
-                    new_size = max(D_size * 2, diff + 1) # Double size or just enough + 1
+                    # Double size or just enough + 1
+                    new_size = max(D_size * 2, diff + 1)
                     new_D = np.zeros(new_size, dtype=np.bool_)
-                    new_D[:D_size] = D # Copy old values
+                    new_D[:D_size] = D  # Copy old values
                     D = new_D
                     D_size = new_size
 
-                if D[diff]: # If this difference already exists
+                if D[diff]:  # If this difference already exists
                     valid = False
                     break
                 if diff > max_diff:
@@ -47,7 +49,7 @@ def golomb_grow(n: int) -> np.ndarray:
                 temp = np.zeros(max_diff + 1, dtype=np.bool_)
                 for i in range(current_length):
                     diff = m - G[i]
-                    if temp[diff]: # Check for duplicates among the *new* differences formed by m
+                    if temp[diff]:  # Check for duplicates among the *new* differences formed by m
                         valid = False
                         break
                     temp[diff] = True
@@ -75,12 +77,13 @@ def create_signal_from_golomb(G: np.ndarray, remove_dc: bool) -> np.ndarray:
     signal[G] = 1
     if remove_dc:
         signal -= np.mean(signal)  # Remove DC component (mean subtraction)
-    
+
     # Normalize by the maximum absolute value to keep amplitude within [-1, 1]
     max_amp = np.max(np.abs(signal))
-    if max_amp > 1e-10: # Avoid division by zero if signal is all zeros (unlikely here)
+    # Avoid division by zero if signal is all zeros (unlikely here)
+    if max_amp > 1e-10:
         signal /= max_amp
-    
+
     return signal
 
 
@@ -93,7 +96,8 @@ def compute_spectrum(signal: np.ndarray, apply_window: bool, window_type: str):
     """
     print(f"Value of signal mean BEFORE FFT: {np.mean(signal)}")
 
-    windowed_signal = signal.copy() # Start with a copy to avoid modifying original 'signal'
+    # Start with a copy to avoid modifying original 'signal'
+    windowed_signal = signal.copy()
 
     if apply_window:
         # Dictionary to map window names to numpy window functions
@@ -101,15 +105,17 @@ def compute_spectrum(signal: np.ndarray, apply_window: bool, window_type: str):
             'hanning': np.hanning,
             'hamming': np.hamming,
             'blackman': np.blackman,
-            'rectangular': lambda N: np.ones(N) # Rectangular window is just ones
+            # Rectangular window is just ones
+            'rectangular': lambda N: np.ones(N)
         }
-        
+
         if window_type.lower() in windows:
             window_func = windows[window_type.lower()]
             windowed_signal *= window_func(len(signal))
             print(f"--- Applied {window_type} window ---")
         else:
-            print(f"Warning: Unknown window type '{window_type}'. Using rectangular window.")
+            print(
+                f"Warning: Unknown window type '{window_type}'. Using rectangular window.")
             # If an unknown type is given, it will effectively use rectangular (no window applied)
             # The 'windowing_applied' flag passed to plot_results will still be True,
             # but the plot title will reflect the 'unknown' name unless handled.
@@ -118,9 +124,8 @@ def compute_spectrum(signal: np.ndarray, apply_window: bool, window_type: str):
     else:
         print("--- No windowing applied (rectangular implicitly) ---")
 
+    X = np.fft.fft(windowed_signal)  # Use windowed_signal here
 
-    X = np.fft.fft(windowed_signal) # Use windowed_signal here
-    
     freqs = np.fft.fftfreq(len(X))
     mag = np.abs(X)
     power = mag ** 2
@@ -131,83 +136,69 @@ def compute_spectrum(signal: np.ndarray, apply_window: bool, window_type: str):
     return freqs, mag, power
 
 
-def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: np.ndarray, n: int, remove_dc_flag: bool, windowing_applied: bool, window_name: str):
+def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: np.ndarray,
+                 n: int, remove_dc_flag: bool, windowing_applied: bool, window_name: str):
     """
     Plots the time-domain signal, FFT magnitude spectrum, and power spectrum.
-    Conditionally excludes DC component from frequency plots if it was removed.
-    Includes DC status and windowing status in plot titles.
     """
-    
-    # Conditional indexing for frequencies based on remove_dc_flag
     if remove_dc_flag:
-        # If DC was removed, exclude 0 Hz (DC) from the plot for cleaner visualization
         idx = (freqs > 0) & (freqs <= 0.5)
         dc_status_text = " (DC Removed)"
     else:
-        # If DC was NOT removed, include 0 Hz (DC) in the plot
         idx = (freqs >= 0) & (freqs <= 0.5)
         dc_status_text = " (DC Kept)"
 
-    # --- MODIFICATION START ---
-    # Determine windowing status text for plot titles
     if windowing_applied:
-        # If an explicit window was applied by user
         window_status_text = f" ({window_name.capitalize()} Window)"
     else:
-        # If user explicitly chose not to apply a window (implicit rectangular)
         window_status_text = " (No Explicit Window)"
-    # --- MODIFICATION END ---
 
-
-    # Apply the index to filter frequencies and their corresponding magnitudes/powers
     freqs = freqs[idx]
     mag = mag[idx]
     power = power[idx]
-
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-
     time_indices = np.arange(len(signal))
 
-    # --- Time-domain stem plot ---
-    # Plot positive values in blue
-    pos_idx = signal >= 0
-    axes[0].stem(time_indices[pos_idx], signal[pos_idx],
-                 basefmt=" ", linefmt='b-', markerfmt='bo')
+    fig = plt.figure(figsize=(16, 8))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.2])
 
-    # Plot negative values in red (only if they exist)
+    ax0 = fig.add_subplot(gs[0, :])   # Full-width top row
+    ax1 = fig.add_subplot(gs[1, 0])   # Bottom-left
+    ax2 = fig.add_subplot(gs[1, 1])   # Bottom-right
+
+    # --- Time-domain stem plot ---
+    pos_idx = signal >= 0
+    ax0.stem(time_indices[pos_idx], signal[pos_idx],
+             basefmt=" ", linefmt='b-', markerfmt='bo')
     neg_idx = signal < 0
     if np.any(neg_idx):
-        axes[0].stem(time_indices[neg_idx], signal[neg_idx],
-                     basefmt=" ", linefmt='r-', markerfmt='ro')
+        ax0.stem(time_indices[neg_idx], signal[neg_idx],
+                 basefmt=" ", linefmt='r-', markerfmt='ro')
 
-    axes[0].set_xscale("log") # Logarithmic scale for time index often good for sparse signals
-    axes[0].set_title(f"Golomb Signal (n = {n}) - Time Domain")
-    axes[0].set_xlabel("Time Index")
-    axes[0].set_ylabel("Amplitude")
-    axes[0].grid(True)
+    # ax0.set_xscale("log")
+    ax0.set_title(f"Golomb Signal (n = {n}) - Time Domain")
+    ax0.set_xlabel("Time Index")
+    ax0.set_ylabel("Amplitude")
+    ax0.grid(True)
 
     # --- FFT Magnitude Spectrum Plot ---
-    axes[1].plot(freqs, mag, color='blue') # Line plot for continuous spectrum feel
-    axes[1].set_title(f"FFT Magnitude Spectrum{dc_status_text}{window_status_text}") 
-    axes[1].set_xlabel("Frequency (Normalized)")
-    axes[1].set_ylabel("Magnitude")
-    axes[1].grid(True)
-    axes[1].set_xlim(0, 0.5) # Limit X-axis to positive frequencies up to Nyquist
-    # Optional: Add stem plot for clarity of individual bins (can get cluttered)
-    # axes[1].stem(freqs, mag, basefmt=" ", linefmt='none', markerfmt='bo')
-    # axes[1].set_yscale("log") # Uncomment for log scale on Magnitude, if desired
+    ax1.plot(freqs, mag, color='blue')
+    ax1.set_title(
+        f"FFT Magnitude Spectrum{dc_status_text}{window_status_text}")
+    ax1.set_xlabel("Frequency (Normalized)")
+    ax1.set_ylabel("Magnitude")
+    ax1.grid(True)
+    ax1.set_xlim(0, 0.5)
 
     # --- Power Spectrum Plot (Log Scale) ---
-    axes[2].semilogy(freqs, power, color='blue') # semilogy sets y-axis to logarithmic
-    axes[2].set_title(f"Power Spectrum (log scale){dc_status_text}{window_status_text}") 
-    axes[2].set_xlabel("Frequency (Normalized)")
-    axes[2].set_ylabel("Power")
-    axes[2].grid(True)
-    axes[2].set_xlim(0, 0.5) # Limit X-axis to positive frequencies up to Nyquist
-    # Optional: Add stem plot for clarity of individual bins
-    # axes[2].stem(freqs, power, basefmt=" ", linefmt='none', markerfmt='go')
+    ax2.semilogy(freqs, power, color='blue')
+    ax2.set_title(
+        f"Power Spectrum (log scale){dc_status_text}{window_status_text}")
+    ax2.set_xlabel("Frequency (Normalized)")
+    ax2.set_ylabel("Power")
+    ax2.grid(True)
+    ax2.set_xlim(0, 0.5)
 
-    plt.tight_layout() # Adjust subplot params for a tight layout
+    plt.tight_layout()
     plt.show()
 
 
@@ -225,9 +216,10 @@ def main(n: int, DC: bool = False, windowing: bool = False, window_type: str = '
     signal = create_signal_from_golomb(G, remove_dc=remove_dc_flag)
     # Pass windowing parameters to compute_spectrum
     freqs, mag, power = compute_spectrum(signal, windowing, window_type)
-    
+
     # Pass windowing status and type to plot_results for title annotation
-    plot_results(signal, freqs, mag, power, n, remove_dc_flag, windowing, window_type)
+    plot_results(signal, freqs, mag, power, n,
+                 remove_dc_flag, windowing, window_type)
 
 
 # --- Execute the main function ---
