@@ -143,7 +143,7 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
     """
     if remove_dc_flag:
         idx = (freqs > 0) & (freqs <= 0.5)
-        dc_status_text = " (DC Removed)"
+        dc_status_text = " (DC removed from time signal)"
     else:
         idx = (freqs >= 0) & (freqs <= 0.5)
         dc_status_text = " (DC Kept)"
@@ -175,7 +175,7 @@ def plot_results(signal: np.ndarray, freqs: np.ndarray, mag: np.ndarray, power: 
                  basefmt=" ", linefmt='r-', markerfmt='ro')
 
     # ax0.set_xscale("log")
-    ax0.set_title(f"Golomb Signal (n = {n}) - Time Domain")
+    ax0.set_title(f"Golomb Signal (n = {n}) - Time Domain {dc_status_text}")
     ax0.set_xlabel("Time Index")
     ax0.set_ylabel("Amplitude")
     ax0.grid(True)

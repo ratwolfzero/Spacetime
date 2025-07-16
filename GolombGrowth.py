@@ -183,7 +183,7 @@ def plot_uniqueness_vs_energy(ns):
 
 # --- Example Usage (Main Execution Block) ---
 if __name__ == "__main__":
-    n_marks = 5  # Example for an n-mark Golomb ruler
+    n_marks = 17  # Example for an n-mark Golomb ruler
     golomb_sequence = golomb_grow(n_marks)
     print(f"Golomb sequence for {n_marks} marks: {golomb_sequence}")
 
