@@ -1,158 +1,182 @@
 # 📐 Golomb Signal Spectral Analysis
 
-This Python program generates **Golomb ruler signals**, performs **Fourier analysis**, and visualizes the **time-domain representation**, **FFT magnitude spectrum**, and **power spectrum**. It also explores the effects of **DC component removal** and **windowing** on spectral analysis.
+This Python program generates **Golomb ruler signals**, performs **Fourier analysis**, and visualizes:
+
+* **Time-domain representation**
+* **FFT magnitude spectrum**
+* **Power spectrum**
+
+It explores the effects of **DC removal** and **windowing** on spectral behavior.
 
 ---
 
 ## 📌 What Is a Golomb Ruler?
 
-A **Golomb ruler** is a set of integers such that all pairwise differences are unique. These rulers are used in applications like:
+A **Golomb ruler** is a set of integers such that all pairwise differences are unique. These rulers are used in:
 
-* Radar/sonar
+* Radar & sonar
 * Sensor array design
 * Coding theory
 
-The program implements a **greedy growing algorithm** to construct the first `n` marks of a Golomb ruler.
+The program constructs a Golomb ruler using a **greedy growing algorithm**.
 
 ---
 
 ## 🔧 What the Program Does
 
-1. **Generate a Golomb Ruler:**
+1. **Generate a Golomb Ruler**
+   → Using a fast greedy algorithm to generate `n` unique-mark positions.
 
-   * Using a fast growing algorithm, a Golomb ruler `G` with `n` marks is created.
+2. **Construct a Binary Signal**
+   → Signal length = `G[-1] + 1`.
+   → Set 1s at Golomb ruler positions, 0s elsewhere.
 
-2. **Construct Binary Signal:**
+3. **Remove DC Component (Optional)**
+   → Subtracts signal mean to center the signal around 0.
 
-   * A signal of length `G[-1] + 1` is created, placing 1s at Golomb ruler positions and 0s elsewhere.
+4. **Normalize Signal (Always Applied)**
+   → Scales to ensure maximum absolute amplitude is 1.
 
-3. **Optional DC Removal:**
+5. **Apply Spectral Window (Optional)**
+   → Supports `hanning`, `hamming`, `blackman`, or `rectangular`.
 
-   * The mean of the signal is optionally subtracted (i.e., DC removal) to focus on oscillatory content in the spectrum.
+6. **Compute FFT & Power Spectrum**
+   → Uses NumPy’s FFT to compute spectral content.
 
-4. **Apply Spectral Window (Optional):**
-
-   * Supported windows: `hanning`, `hamming`, `blackman`, `rectangular`.
-
-5. **FFT and Power Spectrum Computation:**
-
-   * Magnitude and power spectra are computed using NumPy’s FFT.
-
-6. **Plotting:**
-
-   * Three plots are shown:
-
-     * Time-domain Golomb signal
-     * FFT magnitude spectrum
-     * Power spectrum (in log scale)
+7. **Plot Results**
+   → Shows time-domain, FFT magnitude, and log power spectrum.
 
 ---
 
-## 📈 What You See: Output Description
+## 📈 Output Interpretation
 
-### 1. 🟦 **Golomb Signal (Time Domain)**
+### 1. 🟦 Time-Domain Golomb Signal
 
-* A **stem plot** showing binary values (1s at ruler marks).
-* If DC is removed, the mean is subtracted → some values become negative → shown as **red stems**.
+A stem plot showing signal values after optional DC removal and normalization.
 
-**Interpretation:**
+#### 🔵 Blue Stems
 
-* Blue stems → 1s at Golomb positions
-* Red stems (if any) → Negative amplitudes caused by mean subtraction
+* Correspond to Golomb ruler positions.
+* Always normalized to **+1.0**.
+
+#### 🔴 Red Stems (When DC Removed)
+
+* Represent values at **non-Golomb positions** after DC removal.
+* Typically **negative**, shown in red.
+
+#### ⚠️ Why Red Stem Amplitudes Are < 1 (No Windowing Case)
+
+Let:
+
+* `n` = number of Golomb marks
+* `L` = signal length = `G[-1] + 1`
+* `μ = n / L` = mean before DC removal
+
+Then after DC removal:
+
+* Golomb positions = `1 - μ`
+* Non-Golomb positions = `-μ`
+
+And after normalization:
+
+| Type             | Value   | Final Amplitude |
+| ---------------- | ------- | --------------- |
+| Golomb Positions | `1 - μ` | **+1.0**        |
+| Non-Golomb Pos.  | `-μ`    | `-μ / (1 - μ)`  |
+
+Example:
+If `μ = 0.38`, then red stems ≈ `-0.38 / 0.62 ≈ -0.61`.
+
+🛑 **Important:** This applies **only without windowing** (rectangular window).
+Applying spectral windows modifies amplitudes and breaks this clean ratio.
 
 ---
 
-### 2. 🔵 **FFT Magnitude Spectrum**
+### 2. 🔵 FFT Magnitude Spectrum
 
-* Shows how signal energy is distributed across normalized frequencies \[0, 0.5].
-* Sharp spikes often indicate sparse, quasi-random frequency content.
-* The **DC component (0 Hz)** represents the **average** of the signal.
+* Displays energy across normalized frequencies \[0, 0.5].
+* **DC component (0 Hz)** corresponds to average signal value.
+* Sparse frequency content leads to scattered spectral peaks.
 
 ---
 
-### 3. 🔷 **Power Spectrum (Log Scale)**
+### 3. 🔷 Power Spectrum (Log Scale)
 
-* Power spectrum = square of magnitude.
-* Plotted in logarithmic scale for better dynamic range visibility.
-* Useful for observing dominant frequency bands.
+* Power = square of FFT magnitude.
+* Plotted on a **logarithmic scale** for visibility.
+* Highlights dominant spectral bands.
 
 ---
 
 ## 🧠 Key Observations
 
-### ✅ DC Component = `n`, Power = `n²`
+### ✅ DC Component Reflects Total Mark Count (Rectangular Window Only)
 
-If DC is **not removed**, the FFT’s **DC component** equals the number of Golomb marks:
+When DC is **not removed**, the first FFT bin (index 0) contains the sum of the signal:
 
 $$
-\text{DC Magnitude} = \sum x[k] = n
+\text{DC Magnitude} = n \quad (\text{number of marks})
 $$
 
 $$
 \text{DC Power} = n^2
 $$
 
-**Why?**
-The input signal has exactly `n` ones and the rest zeros, so:
+#### Example:
 
-* The **mean value** of the signal is `n / L`, where `L = G[-1] + 1` is the signal length.
-* The **FFT at index 0** sums all values, which equals `n`.
-* The **power at DC** becomes `n²`.
-
-**Printed Output Example:**
-
-```
+```bash
 Magnitude of DC component (mag[0]): 10.0
 Power of DC component (power[0]): 100.0
 ```
 
----
-
-### 🔴 Red Stems in Time Plot (When DC is Removed)
-
-When the DC component is removed:
-
-* The signal's mean is subtracted.
-* The `1`s become values below 1, and many entries become **negative**.
-* These are plotted as **red stems** in the time-domain plot.
+🛑 This relationship holds **only when no spectral window** is applied.
 
 ---
 
-### 🔍 Why Remove DC?
+### 🔴 Red Stems Appear When DC Is Removed
 
-Removing the DC component:
+When subtracting the mean:
 
-* Centers the signal around zero mean.
-* Eliminates the dominant 0 Hz component in the spectrum.
-* Allows better visibility of **oscillatory components** and **true spectral features**.
+* Golomb entries drop from 1 to `1 - μ`
+* All 0 entries become `-μ`
+* After normalization, the signal ranges from `-μ / (1 - μ)` to `+1.0`
+* Red stems (negative) are plotted for visual emphasis
 
 ---
 
 ## 🪟 What Is Windowing?
 
-Windowing shapes the signal before the FFT to reduce **spectral leakage** caused by sharp signal edges. Supported windows:
+Spectral windows reduce **leakage** in FFTs by tapering the signal:
 
-* **Hanning**
-* **Hamming**
-* **Blackman**
-* **Rectangular** (i.e., no windowing)
+| Window      | Description                   |
+| ----------- | ----------------------------- |
+| Hanning     | Smooth taper to zero          |
+| Hamming     | Less aggressive than Hanning  |
+| Blackman    | Best roll-off, most smoothing |
+| Rectangular | No tapering (raw signal)      |
+
+Applying windows helps reveal **true frequency components**.
 
 ---
 
 ## 🧪 Example Usage
 
-Run the program with:
+Run from terminal:
 
 ```bash
 python golomb_fft.py
 ```
 
-It will execute two examples:
+It runs two configurations:
 
-1. **DC Removed, Hanning Window**
-2. **DC Kept, Hanning Window**
+1. **DC Removed**, with **Hanning Window**
+2. **DC Kept**, with **Hanning Window**
 
-Both display time-domain and spectral plots with annotations.
+Each shows:
+
+* Time-domain signal (with stem colors)
+* FFT magnitude spectrum
+* Power spectrum (log scale)
 
 ---
 
@@ -160,36 +184,40 @@ Both display time-domain and spectral plots with annotations.
 
 ### `golomb_grow(n)`
 
-Generates the first `n` marks of a Golomb ruler using a growing difference-checking method.
+Returns the first `n` Golomb marks using greedy difference-checking.
 
-### `create_signal_from_golomb(G, remove_dc)`
+### `create_signal_from_golomb(G, remove_dc=True)`
 
-Creates a binary signal from ruler `G`. If `remove_dc=True`, the mean is subtracted and the signal is normalized.
+Creates a binary signal from `G`, subtracts mean if requested, and normalizes.
 
 ### `compute_spectrum(signal, apply_window, window_type)`
 
-Computes FFT, magnitude, and power spectra. Applies a window if requested.
+Applies optional window, computes FFT, and returns:
+
+* Frequencies
+* Magnitude
+* Power
 
 ### `plot_results(...)`
 
-Displays:
+Generates three aligned plots:
 
-* Time-domain stem plot (top)
-* FFT magnitude (bottom-left)
-* Power spectrum (bottom-right)
+* Time-domain signal
+* FFT magnitude
+* Log power spectrum
 
 ### `main(n, DC=False, windowing=False, window_type='hanning')`
 
-Main entry point to run analysis with desired options:
+Executes the full analysis:
 
 * `n`: number of Golomb marks
-* `DC=True`: keep DC component
-* `windowing=True`: apply window before FFT
-* `window_type`: choose window function
+* `DC`: keep DC or remove
+* `windowing`: apply spectral window
+* `window_type`: which window to use
 
 ---
 
-## 📚 Example Plot Layout
+## 📚 Plot Layout
 
 ```
 +--------------------------+
@@ -202,21 +230,7 @@ Main entry point to run analysis with desired options:
 
 ---
 
-## 📎 Dependencies
-
-* `numpy`
-* `matplotlib`
-* `numba`
-
-Install with:
-
-```bash
-pip install numpy matplotlib numba
-```
-
----
-
-## 📤 Output Example (Console)
+## 📤 Sample Console Output
 
 ```bash
 --- Example 3: DC Removed, Hanning Window Applied ---
@@ -234,17 +248,23 @@ Power of DC component (power[0]): 100.0
 
 ---
 
-## 📌 Conclusion
+## 📎 Dependencies
 
-This program demonstrates:
+Install via pip:
 
-* Efficient generation of Golomb rulers
-* Visual and spectral analysis of sparse signals
-* Effects of DC removal and windowing on FFT
-* Clear insights into frequency domain behavior
-
-Ideal for learning, research, or signal processing demonstrations.
+```bash
+pip install numpy matplotlib numba
+```
 
 ---
 
-Would you like this saved as a file (`README.md`) or converted into a GitHub-ready repository structure?
+## 📌 Conclusion
+
+This tool demonstrates:
+
+* Efficient Golomb ruler construction
+* Sparse signal visualization
+* Spectrum analysis with and without DC component
+* Effect of windowing on frequency content
+
+Ideal for DSP education, sparse sampling studies, or Golomb ruler research.
