@@ -226,7 +226,7 @@ def main(n: int, DC: bool = False, windowing: bool = False, window_type: str = '
 if __name__ == "__main__":
 
     print("\n--- Example 3: DC Removed, Hanning Window Applied ---")
-    main(n=10, DC=False, windowing=True, window_type='hanning')
+    main(n=17, DC=False, windowing=True, window_type='hanning')
 
     print("\n--- Example 4: DC Kept, Hanning Window Applied ---")
-    main(n=10, DC=True, windowing=True, window_type='hanning')
+    main(n=17, DC=True, windowing=True, window_type='hanning')
