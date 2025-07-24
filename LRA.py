@@ -87,4 +87,4 @@ def analyze_growth(n):
     plt.show()
 
 # Run it
-analyze_growth(1000)
+analyze_growth(100)
