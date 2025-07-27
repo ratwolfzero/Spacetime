@@ -1,275 +1,128 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import mutual_info_score
-from scipy.sparse.csgraph import laplacian
-from scipy.signal import savgol_filter
-from numba import njit
+from scipy.linalg import eigh
+from mpl_toolkits.mplot3d import Axes3D
+import os
 
-@njit
-def generate_golomb_ruler(n: int) -> np.ndarray:
-    """
-    Generates the first n Golomb rulers using an optimized growing algorithm.
-    """
-    G = np.zeros(n, dtype=np.int64)
-    # D will store whether a difference has been seen. Use a larger initial size.
-    D_size = 1024
-    D = np.zeros(D_size, dtype=np.bool_)
-
-    G[0] = 0
-    current_length = 1
-
-    while current_length < n:
-        # Start checking from the next integer after the last element
-        m = G[current_length - 1] + 1
-        #print(f"Checking m={m} at current_length={current_length}")  # Debug
-
+# Generate greedy Golomb ruler sequence
+def generate_golomb_sequence(n):
+    G = [0]
+    D = set()
+    while len(G) < n:
+        m = G[-1] + 1
         while True:
-            valid = True
-            max_diff = 0
-
-            # Check if current m creates any repeated differences with existing G elements
-            for i in range(current_length):
-                diff = m - G[i]
-                if diff >= D_size:
-                    new_size = max(D_size * 2, diff + 1)
-                    new_D = np.zeros(new_size, dtype=np.bool_)
-                    new_D[:D_size] = D
-                    D = new_D
-                    D_size = new_size
-
-                if D[diff]:
-                    valid = False
-                    break
-                if diff > max_diff:
-                    max_diff = diff
-
-            if valid:
-                # Secondary check using a temporary array
-                temp = np.zeros(max_diff + 1, dtype=np.bool_)
-                for i in range(current_length):
-                    diff = m - G[i]
-                    if temp[diff]:
-                        valid = False
-                        break
-                    temp[diff] = True
-
-            if valid:
-                for i in range(current_length):
-                    diff = m - G[i]
-                    D[diff] = True
-                G[current_length] = m
-                current_length += 1
-                #print(f"Added m={m} to G, current_length={current_length}")  # Debug
+            diffs = {abs(m - g) for g in G}
+            if D.isdisjoint(diffs):
                 break
-            else:
-                m += 1
-                #print(f"Incremented m to {m}")  # Debug
+            m += 1
+        G.append(m)
+        D.update(abs(m - g) for g in G[:-1])
+    return np.array(G)
 
-    return G
+# Simulate distinction data with stronger correlation
+def simulate_distinction_data(G, length=500):
+    np.random.seed(42) 
+    base = np.random.randint(0, 2, length)                        
+    return {x: base ^ (np.random.random(length) < 0.02).astype(int) for x in G}
 
-def generate_symbolic_system(n, base_symbols=32, cluster_size=3, corr_prob=0.99):
-    symbols = [chr(65 + i) for i in range(base_symbols)]
-    golomb_positions = generate_golomb_ruler(n)
-    if not golomb_positions.any() or golomb_positions[0] == 0:  # Check if all zeros or empty
-        print("Warning: Golomb positions invalid, returning empty system")
-        return [], np.array([], dtype=np.int64)
-    system = []
-    for i, pos in enumerate(golomb_positions):
-        cluster_id = i // cluster_size
-        np.random.seed(cluster_id)
-        length = np.random.randint(12, 16)
-        if i > 0 and np.random.random() < corr_prob:
-            prev = list(system[i-1].split('_')[1])
-            s = ''.join(prev[:length//2]) + ''.join(np.random.choice(symbols, size=length//2))
-        else:
-            s = ''.join(np.random.choice(symbols, size=length))
-        system.append(f"{pos:04d}_{s}")
-    return system, golomb_positions
+# Compute mutual information (simplified for speed)
+def mutual_information(x, y):
+    joint_prob = np.histogram2d(x, y, bins=2)[0] / len(x)
+    joint_prob = joint_prob / joint_prob.sum()
+    nz = joint_prob > 0
+    return np.sum(joint_prob[nz] * np.log(joint_prob[nz] / (joint_prob.sum(axis=1)[:, None] * joint_prob.sum(axis=0)[None, :])[nz]))
 
-def compute_mi_matrix(system, fixed_length=16, batch_size=1000):
-    n = len(system)
+# Build mutual information matrix
+def compute_mi_matrix(data):
+    keys = list(data.keys())
+    n = len(keys)
     mi_matrix = np.zeros((n, n))
-    for i in range(0, n, batch_size):
-        for j in range(i, min(n, i + batch_size)):
-            a = list(system[j].split('_')[1].ljust(fixed_length, ' ')[0:fixed_length])
-            for k in range(max(i, j), min(n, j + batch_size)):
-                b = list(system[k].split('_')[1].ljust(fixed_length, ' ')[0:fixed_length])
-                mi = mutual_info_score(a, b)
-                mi_matrix[j, k] = mi
-                mi_matrix[k, j] = mi
-    return mi_matrix
+    for i in range(n):
+        for j in range(i + 1, n):
+            mi = mutual_information(data[keys[i]], data[keys[j]])
+            mi_matrix[i, j] = mi_matrix[j, i] = mi
+    print(f"MI matrix max: {np.max(mi_matrix):.6f}, min (off-diag): {np.min(mi_matrix[np.triu_indices(n, k=1)]):.6f}")
+    return mi_matrix, keys
 
+# Compute informational metrics with tighter percentile threshold
 def compute_informational_metrics(mi_matrix, n):
-    I_max = np.log2(n * (n - 1) / 2) if n > 1 else 0
+    I_max = np.log(n * (n - 1) / 2) if n > 1 else 0
     ell_info = 1 / (1 + I_max)
     d_matrix = 1 / (1 + mi_matrix + 1e-10)
     np.fill_diagonal(d_matrix, np.inf)
-    # Handle case where d_matrix has no finite values
-    finite_mask = d_matrix < np.inf
-    if not np.any(finite_mask):
-        return ell_info, 0.0, 0.0  # Default values if no finite d_min
-    d_min = np.min(d_matrix[finite_mask])
-    if d_min > ell_info:
-        R_n = (1 / ell_info**2) * (1 - d_min / ell_info)
-    else:
-        R_n = 0
-    diff = 1 / ell_info**2 - 1 / d_matrix**2
-    E_n = -np.sum(np.log(np.abs(diff) + 1e-10)) / n
-    return ell_info, R_n, E_n
+    threshold = np.percentile(mi_matrix[np.triu_indices(n, k=1)], 1)  # 1st percentile
+    d_matrix[mi_matrix < threshold] = np.inf
+    finite_dists = d_matrix[d_matrix < np.inf]
+    d_min = np.min(finite_dists) if len(finite_dists) > 0 else ell_info
+    R_n = (1 / ell_info**2) * (1 - d_min / ell_info) if d_min > ell_info else 0
+    return ell_info, R_n, d_min
 
-def compute_action(mi_matrix, ell_info):
-    d_matrix = 1 / (1 + mi_matrix + 1e-10)
-    np.fill_diagonal(d_matrix, 0)
-    S_G = np.sum(mi_matrix * d_matrix**2)
-    return S_G
-
-def detect_transitions(mi_matrix, n, golomb_positions):
-    transitions = []
-    eigen_stats = []
-    curvature_stats = []
-    energy_stats = []
-    action_stats = []
-
-    min_system_size = 20
-    window_size = max(5, min(50, n // 20))
-    eps = 1e-6
-
-    I_max = np.log2(n * (n - 1) / 2) if n > 1 else 0
-    ell_info = 1 / (1 + I_max)
-    epsilon_1 = 1 + ell_info
-    epsilon_2 = 1 + ell_info / 2
-    curvature_threshold = -3000
-
-    if n < min_system_size or mi_matrix.size == 0:
-        print(f"System too small (n={n}) or mi_matrix empty for transition detection")
-        return transitions, curvature_stats, energy_stats, action_stats
-
-    try:
-        for k in range(window_size, n + 1, max(1, window_size // 2)):
-            submatrix = mi_matrix[:k, :k]
-            if submatrix.size == 0:
-                print(f"Skipping k={k} due to empty submatrix")
-                continue
-            L = laplacian(submatrix, normed=True)
-            eigs = np.sort(np.linalg.eigvalsh(L))[:4]
-            print(f"k={k}, eigs={eigs}")
-
-            sub_ell_info, R_n, E_n = compute_informational_metrics(submatrix, k)
-            S_G = compute_action(submatrix, sub_ell_info)
-            curvature_stats.append((k, R_n))
-            energy_stats.append((k, E_n))
-            action_stats.append((k, S_G))
-
-            λ1 = max(abs(eigs[0]), eps)
-            λ2 = eigs[1]
-            λ3 = eigs[2]
-            if λ2 > eps:
-                ratio12 = λ2 / λ1
-                ratio23 = λ3 / λ2
-                eigen_stats.append((k, ratio12, ratio23))
-
-    except Exception as e:
-        print("Matrix analysis failed:", e)
-        return [], [], [], []
-
-    if not eigen_stats:
-        print("No valid eigenvalue ratios computed")
-        return [], [], [], []
-
-    ks, ratio12, ratio23 = zip(*eigen_stats)
-
-    if len(ks) > 11:
-        window_len = min(5, len(ks) // 2 * 2 + 1)
-        ratio12_smooth = savgol_filter(ratio12, window_length=window_len, polyorder=2)
-        ratio23_smooth = savgol_filter(ratio23, window_length=window_len, polyorder=2)
-    else:
-        ratio12_smooth = ratio12
-        ratio23_smooth = ratio23
-
-    try:
-        t1_idx = np.argmax(np.array(ratio12_smooth) > epsilon_1)
-        t2_idx = np.argmax(np.array(ratio23_smooth) > epsilon_2)
-
-        min_trans = max(50, n // 25)
-        if ks[t1_idx] > min_trans and R_n > curvature_threshold and S_G > 0:
-            transitions.append(("1D→2D", ks[t1_idx]))
-        if '1D→2D' in [t[0] for t in transitions] and ks[t2_idx] > 1.2 * ks[t1_idx] and R_n > curvature_threshold and S_G > 0:
-            transitions.append(("2D→3D", ks[t2_idx]))
-
-    except Exception as e:
-        print("Transition analysis failed:", e)
-
-    plt.figure(figsize=(18, 10))
-    plt.subplot(2, 2, 1)
-    plt.plot(ks, ratio12, 'b-', alpha=0.3, label="Raw λ₂/λ₁")
-    plt.plot(ks, ratio12_smooth, 'r-', label="Smoothed λ₂/λ₁")
-    plt.axhline(epsilon_1, color='k', linestyle='--', label=f"Threshold ({epsilon_1:.3f})")
-    plt.xlabel("n distinctions")
-    plt.ylabel("λ₂ / λ₁")
-    plt.title("1D → 2D Transition")
-    plt.legend()
-    plt.grid(True)
-
-    plt.subplot(2, 2, 2)
-    plt.plot(ks, ratio23, 'b-', alpha=0.3, label="Raw λ₃/λ₂")
-    plt.plot(ks, ratio23_smooth, 'r-', label="Smoothed λ₃/λ₂")
-    plt.axhline(epsilon_2, color='k', linestyle='--', label=f"Threshold ({epsilon_2:.3f})")
-    plt.xlabel("n distinctions")
-    plt.ylabel("λ₃ / λ₂")
-    plt.title("2D → 3D Transition")
-    plt.legend()
-    plt.grid(True)
-
-    ks_c, R_n_values = zip(*curvature_stats)
-    plt.subplot(2, 2, 3)
-    plt.plot(ks_c, R_n_values, 'g-', label="Informational Curvature R_n")
-    plt.axhline(curvature_threshold, color='k', linestyle='--', label=f"Threshold ({curvature_threshold})")
-    plt.xlabel("n distinctions")
-    plt.ylabel("R_n")
-    plt.title("Informational Curvature")
-    plt.legend()
-    plt.grid(True)
-
-    ks_e, E_n_values = zip(*energy_stats)
-    ks_a, S_G_values = zip(*action_stats)
-    plt.subplot(2, 2, 4)
-    plt.plot(ks_e, E_n_values, 'm-', label="Informational Energy E_n")
-    plt.plot(ks_a, S_G_values, 'c-', label="Action S_G")
-    plt.axhline(0, color='k', linestyle='--', label="Threshold (0)")
-    plt.xlabel("n distinctions")
-    plt.ylabel("E_n / S_G")
-    plt.title("Informational Energy and Action")
-    plt.legend()
-    plt.grid(True)
-																		
+# Dimensional bifurcation analysis
+def analyze_dimensionality(mi_matrix, n, eps1=1.5, eps2=1.2):
+    D = np.diag(np.sum(mi_matrix, axis=1))
+    L = D - mi_matrix
+    eigenvalues = eigh(L, subset_by_index=[0, min(3, n-1)])[0]
+    return eigenvalues[1:4] if len(eigenvalues) > 3 else eigenvalues[1:]
+					   
+# Plot MI landscape
+def plot_mi_landscape(mi_matrix, title="MI Landscape"):
+    n = mi_matrix.shape[0]
+    x, y = np.meshgrid(range(n), range(n))
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    surf = ax.plot_surface(x, y, mi_matrix, cmap='terrain', edgecolor='none', alpha=0.8)
+    ax.set_xlabel('Golomb Position Index')
+    ax.set_ylabel('Golomb Position Index')
+    ax.set_zlabel('Mutual Information')
+    ax.set_title(title)
+    fig.colorbar(surf, shrink=0.5, aspect=5, label='MI Value')
     plt.tight_layout()
-    plt.savefig("golomb_transitions_optimized.png")
-    print("Plot saved: golomb_transitions_optimized.png")
+    plt.savefig(f'/Users/ralf/Downloads/{title.replace(" ", "_")}.png')  # Save to specific path
+    plt.show()
 
-    print("\nAction Values:", list(zip(ks_a, S_G_values)))
-
-    return transitions, curvature_stats, energy_stats, action_stats
+# Main simulation with trend plotting
+def main():
+    n_values = [50, 100]
+    ratios12, ratios23 = [], []
+    
+    for n in n_values:
+        print(f"\nSimulating with n={n} distinctions...")
+        G = generate_golomb_sequence(n)
+        print(f"Golomb positions: {G[:10]}... (total {len(G)})")
+        
+        data = simulate_distinction_data(G)
+        mi_matrix, keys = compute_mi_matrix(data)
+        print("MI matrix computed.")
+        
+        plot_mi_landscape(mi_matrix, title=f"MI Landscape (n={n})")
+        
+        ell_info, R_n, d_min = compute_informational_metrics(mi_matrix, n)
+        print(f"ell_info: {ell_info:.6f}, R_n: {R_n:.6f}, d_min: {d_min:.6f}")
+        
+        eigenvalues = analyze_dimensionality(mi_matrix, n)
+        ratio12 = eigenvalues[1] / eigenvalues[0] if len(eigenvalues) > 1 else 0
+        ratio23 = eigenvalues[2] / eigenvalues[1] if len(eigenvalues) > 2 else 0
+        ratios12.append(ratio12)
+        ratios23.append(ratio23)
+        print(f"Ratio λ2/λ1: {ratio12:.3f}, Ratio λ3/λ2: {ratio23:.3f}")
+        if ratio12 > 1.5:
+            print("Transition to 2D detected.")
+        if ratio23 > 1.2 and ratio12 > 1.5:
+            print("Transition to 3D detected.")
+    
+    # Plot eigenvalue ratios
+    plt.figure(figsize=(10, 6))
+    plt.plot(n_values, ratios12, label="λ2/λ1")
+    plt.plot(n_values, ratios23, label="λ3/λ2")
+    plt.axhline(1.5, color='r', linestyle='--', label="2D Threshold")
+    plt.axhline(1.2, color='g', linestyle='--', label="3D Threshold")
+    plt.xlabel("Number of Distinctions (n)")
+    plt.ylabel("Eigenvalue Ratio")
+    plt.title("Dimensional Bifurcation Trends")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('/Users/ralf/Downloads/bifurcation_trends.png')  # Save to specific path
+    plt.show()
 
 if __name__ == "__main__":
-    n = 5000
-    system, golomb_positions = generate_symbolic_system(n)
-    print("System length:", len(system))  # Debug
-    print("Golomb positions:", golomb_positions)  # Debug
-    mi_matrix = compute_mi_matrix(system)
-    print("MI Matrix shape:", mi_matrix.shape)  # Debug
-    transitions, curvature_stats, energy_stats, action_stats = detect_transitions(mi_matrix, n, golomb_positions)
-
-    print("\nDetected Transitions:")
-    for label, k in transitions:
-        print(f"  {label} at n = {k}")
-
-    D = set(abs(golomb_positions[i] - golomb_positions[j])
-            for i in range(len(golomb_positions)) for j in range(i + 1, len(golomb_positions)))
-    is_golomb = len(D) == len(golomb_positions) * (len(golomb_positions) - 1) // 2
-    print(f"\nGolomb Ruler Property: {'Valid' if is_golomb else 'Invalid'}")
-
-    ell_info, R_n, E_n = compute_informational_metrics(mi_matrix, n)
-    print(f"\nInformational Metrics:")
-    print(f"  ℓ_info: {ell_info:.6f}")
-    print(f"  R_n: {R_n:.6f}")
-    print(f"  E_n: {E_n:.6f}")
+    main()
