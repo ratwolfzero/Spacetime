@@ -3,34 +3,76 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mutual_info_score
 from scipy.sparse.csgraph import laplacian
 from scipy.signal import savgol_filter
-import bisect
+from numba import njit
 
-def generate_golomb_ruler(n):
-    if n <= 0:
-        return []
-    G = [0]
-    differences = []
-    
-    for _ in range(1, n):
-        m = G[-1] + 1
+@njit
+def generate_golomb_ruler(n: int) -> np.ndarray:
+    """
+    Generates the first n Golomb rulers using an optimized growing algorithm.
+    """
+    G = np.zeros(n, dtype=np.int64)
+    # D will store whether a difference has been seen. Use a larger initial size.
+    D_size = 1024
+    D = np.zeros(D_size, dtype=np.bool_)
+
+    G[0] = 0
+    current_length = 1
+
+    while current_length < n:
+        # Start checking from the next integer after the last element
+        m = G[current_length - 1] + 1
+        #print(f"Checking m={m} at current_length={current_length}")  # Debug
+
         while True:
-            is_valid = True
-            for g in G:
-                diff = abs(m - g)
-                if bisect.bisect_left(differences, diff) < len(differences) and differences[bisect.bisect_left(differences, diff)] == diff:
-                    is_valid = False
+            valid = True
+            max_diff = 0
+
+            # Check if current m creates any repeated differences with existing G elements
+            for i in range(current_length):
+                diff = m - G[i]
+                if diff >= D_size:
+                    new_size = max(D_size * 2, diff + 1)
+                    new_D = np.zeros(new_size, dtype=np.bool_)
+                    new_D[:D_size] = D
+                    D = new_D
+                    D_size = new_size
+
+                if D[diff]:
+                    valid = False
                     break
-            if is_valid:
-                bisect.insort(G, m)
-                for g in G[:-1]:
-                    bisect.insort(differences, abs(m - g))
+                if diff > max_diff:
+                    max_diff = diff
+
+            if valid:
+                # Secondary check using a temporary array
+                temp = np.zeros(max_diff + 1, dtype=np.bool_)
+                for i in range(current_length):
+                    diff = m - G[i]
+                    if temp[diff]:
+                        valid = False
+                        break
+                    temp[diff] = True
+
+            if valid:
+                for i in range(current_length):
+                    diff = m - G[i]
+                    D[diff] = True
+                G[current_length] = m
+                current_length += 1
+                #print(f"Added m={m} to G, current_length={current_length}")  # Debug
                 break
-            m += 1
+            else:
+                m += 1
+                #print(f"Incremented m to {m}")  # Debug
+
     return G
 
 def generate_symbolic_system(n, base_symbols=32, cluster_size=3, corr_prob=0.99):
     symbols = [chr(65 + i) for i in range(base_symbols)]
     golomb_positions = generate_golomb_ruler(n)
+    if not golomb_positions.any() or golomb_positions[0] == 0:  # Check if all zeros or empty
+        print("Warning: Golomb positions invalid, returning empty system")
+        return [], np.array([], dtype=np.int64)
     system = []
     for i, pos in enumerate(golomb_positions):
         cluster_id = i // cluster_size
@@ -47,7 +89,7 @@ def generate_symbolic_system(n, base_symbols=32, cluster_size=3, corr_prob=0.99)
 def compute_mi_matrix(system, fixed_length=16, batch_size=1000):
     n = len(system)
     mi_matrix = np.zeros((n, n))
-    for i in range(0, n, batch_size):                                                              
+    for i in range(0, n, batch_size):
         for j in range(i, min(n, i + batch_size)):
             a = list(system[j].split('_')[1].ljust(fixed_length, ' ')[0:fixed_length])
             for k in range(max(i, j), min(n, j + batch_size)):
@@ -62,7 +104,11 @@ def compute_informational_metrics(mi_matrix, n):
     ell_info = 1 / (1 + I_max)
     d_matrix = 1 / (1 + mi_matrix + 1e-10)
     np.fill_diagonal(d_matrix, np.inf)
-    d_min = np.min(d_matrix[d_matrix < np.inf])
+    # Handle case where d_matrix has no finite values
+    finite_mask = d_matrix < np.inf
+    if not np.any(finite_mask):
+        return ell_info, 0.0, 0.0  # Default values if no finite d_min
+    d_min = np.min(d_matrix[finite_mask])
     if d_min > ell_info:
         R_n = (1 / ell_info**2) * (1 - d_min / ell_info)
     else:
@@ -82,7 +128,7 @@ def detect_transitions(mi_matrix, n, golomb_positions):
     eigen_stats = []
     curvature_stats = []
     energy_stats = []
-    action_stats = []                                                                              
+    action_stats = []
 
     min_system_size = 20
     window_size = max(5, min(50, n // 20))
@@ -94,13 +140,16 @@ def detect_transitions(mi_matrix, n, golomb_positions):
     epsilon_2 = 1 + ell_info / 2
     curvature_threshold = -3000
 
-    if n < min_system_size:
-        print(f"System too small (n={n}) for transition detection")
+    if n < min_system_size or mi_matrix.size == 0:
+        print(f"System too small (n={n}) or mi_matrix empty for transition detection")
         return transitions, curvature_stats, energy_stats, action_stats
 
     try:
         for k in range(window_size, n + 1, max(1, window_size // 2)):
             submatrix = mi_matrix[:k, :k]
+            if submatrix.size == 0:
+                print(f"Skipping k={k} due to empty submatrix")
+                continue
             L = laplacian(submatrix, normed=True)
             eigs = np.sort(np.linalg.eigvalsh(L))[:4]
             print(f"k={k}, eigs={eigs}")
@@ -130,7 +179,7 @@ def detect_transitions(mi_matrix, n, golomb_positions):
     ks, ratio12, ratio23 = zip(*eigen_stats)
 
     if len(ks) > 11:
-        window_len = min(5, len(ks) // 2 * 2 + 1)  # Changed from 9 to 5
+        window_len = min(5, len(ks) // 2 * 2 + 1)
         ratio12_smooth = savgol_filter(ratio12, window_length=window_len, polyorder=2)
         ratio23_smooth = savgol_filter(ratio23, window_length=window_len, polyorder=2)
     else:
@@ -144,12 +193,11 @@ def detect_transitions(mi_matrix, n, golomb_positions):
         min_trans = max(50, n // 25)
         if ks[t1_idx] > min_trans and R_n > curvature_threshold and S_G > 0:
             transitions.append(("1D→2D", ks[t1_idx]))
-        # Only detect 2D→3D if 1D→2D is detected
         if '1D→2D' in [t[0] for t in transitions] and ks[t2_idx] > 1.2 * ks[t1_idx] and R_n > curvature_threshold and S_G > 0:
             transitions.append(("2D→3D", ks[t2_idx]))
 
     except Exception as e:
-        print("Transition detection failed:", e)
+        print("Transition analysis failed:", e)
 
     plt.figure(figsize=(18, 10))
     plt.subplot(2, 2, 1)
@@ -193,7 +241,7 @@ def detect_transitions(mi_matrix, n, golomb_positions):
     plt.title("Informational Energy and Action")
     plt.legend()
     plt.grid(True)
-
+																		
     plt.tight_layout()
     plt.savefig("golomb_transitions_optimized.png")
     print("Plot saved: golomb_transitions_optimized.png")
@@ -203,9 +251,12 @@ def detect_transitions(mi_matrix, n, golomb_positions):
     return transitions, curvature_stats, energy_stats, action_stats
 
 if __name__ == "__main__":
-    n = 3000
+    n = 5000
     system, golomb_positions = generate_symbolic_system(n)
+    print("System length:", len(system))  # Debug
+    print("Golomb positions:", golomb_positions)  # Debug
     mi_matrix = compute_mi_matrix(system)
+    print("MI Matrix shape:", mi_matrix.shape)  # Debug
     transitions, curvature_stats, energy_stats, action_stats = detect_transitions(mi_matrix, n, golomb_positions)
 
     print("\nDetected Transitions:")
@@ -213,8 +264,8 @@ if __name__ == "__main__":
         print(f"  {label} at n = {k}")
 
     D = set(abs(golomb_positions[i] - golomb_positions[j])
-            for i in range(n) for j in range(i + 1, n))
-    is_golomb = len(D) == len(list(D))
+            for i in range(len(golomb_positions)) for j in range(i + 1, len(golomb_positions)))
+    is_golomb = len(D) == len(golomb_positions) * (len(golomb_positions) - 1) // 2
     print(f"\nGolomb Ruler Property: {'Valid' if is_golomb else 'Invalid'}")
 
     ell_info, R_n, E_n = compute_informational_metrics(mi_matrix, n)
