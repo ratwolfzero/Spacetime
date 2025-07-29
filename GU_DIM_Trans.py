@@ -106,7 +106,7 @@ def check_transitions(G, d_min, l_info, R_n):
     try:
         _, _, _, W = compute_metrics(G)
         D = np.diag(np.sum(W, axis=1))
-        L = D - W
+        L = D - W 
                                                                
         eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 3])
         λ0, λ1, λ2, λ3 = eigenvalues
@@ -118,8 +118,8 @@ def check_transitions(G, d_min, l_info, R_n):
         r1 = λ2 / λ1  # For 1D→2D
         r2 = λ3 / λ2  # For 2D→3D
 
-        transition_2D = (r1 > 1.3 and R_n > 1.3)
-        transition_3D = (r2 > 1.15 and R_n > 2.2)
+        transition_2D = (r1 > R_n)
+        transition_3D = (r2 < R_n)
 
         return transition_2D, transition_3D, r1, r2
                                                                                                    
@@ -173,8 +173,10 @@ def plot_results(G_full, results, metrics_history):
     plt.plot(ns, r2s, label='λ₃/λ₂ (2D→3D)')
     plt.axhline(y=1.3, color='r', linestyle='--', label='1D→2D Threshold (1.3)')
     plt.axhline(y=1.15, color='g', linestyle='--', label='2D→3D Threshold (1.15)')
-    plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
-    plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
+    if results.get('2D') is not None:
+       plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
+    if results.get('3D') is not None:
+       plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
     plt.xlabel('Number of Distinctions (n)')
     plt.ylabel('Eigenvalue Ratios')
     plt.title('Eigenvalue Ratios for Dimensional Transitions')
@@ -189,8 +191,10 @@ def plot_results(G_full, results, metrics_history):
     plt.plot(ns, R_ns, label='R_n')
     plt.axhline(y=1.3, color='r', linestyle='--', label='1D→2D Threshold (1.3)')
     plt.axhline(y=2.2, color='g', linestyle='--', label='2D→3D Threshold (2.2)')
-    plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
-    plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
+    if results.get('2D') is not None:
+       plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
+    if results.get('3D') is not None:
+       plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
     plt.xlabel('Number of Distinctions (n)')
     plt.ylabel('Informational Curvature (R_n)')
     plt.title('Informational Curvature Evolution')
@@ -293,7 +297,8 @@ def simulate(n_max):
 
 # Run simulation
 print("Starting simulation...")
-results = simulate(1000)
+results = simulate(500)
 print("\nFinal Results:")
 print(f"1D→2D transition at n={results['2D']}")
 print(f"2D→3D transition at n={results['3D']}")
+
