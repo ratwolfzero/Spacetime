@@ -293,7 +293,7 @@ def simulate(n_max):
 
 # Run simulation
 print("Starting simulation...")
-results = simulate(100)
+results = simulate(1500)
 print("\nFinal Results:")
 print(f"1D→2D transition at n={results['2D']}")
 print(f"2D→3D transition at n={results['3D']}")
