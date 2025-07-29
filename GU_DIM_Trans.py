@@ -1,128 +1,299 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.linalg import eigh
-from mpl_toolkits.mplot3d import Axes3D
-import os
+from numba import njit, prange
+import matplotlib.pyplot as plt
 
-# Generate greedy Golomb ruler sequence
-def generate_golomb_sequence(n):
-    G = [0]
-    D = set()
-    while len(G) < n:
-        m = G[-1] + 1
+@njit
+def generate_golomb(n: int) -> np.ndarray:
+    """
+    Generates the first n Golomb rulers using an optimized growing algorithm,
+    with preallocated and reused temp arrays for speed.
+    """
+    G = np.zeros(n, dtype=np.int64)
+    D_size = 1024
+    D = np.zeros(D_size, dtype=np.bool_)
+    
+    # Preallocate temp array for internal difference check
+    temp_size = 1024
+    temp = np.zeros(temp_size, dtype=np.bool_)
+
+    G[0] = 0
+    current_length = 1
+                                             
+    while current_length < n:
+        m = G[current_length - 1] + 1
+
         while True:
-            diffs = {abs(m - g) for g in G}
-            if D.isdisjoint(diffs):
-                break
-            m += 1
-        G.append(m)
-        D.update(abs(m - g) for g in G[:-1])
-    return np.array(G)
+            valid = True
+            max_diff = 0
 
-# Simulate distinction data with stronger correlation
-def simulate_distinction_data(G, length=500):
-    np.random.seed(42) 
-    base = np.random.randint(0, 2, length)                        
-    return {x: base ^ (np.random.random(length) < 0.02).astype(int) for x in G}
+            # Check for global difference duplication
+            for i in range(current_length):
+                diff = m - G[i]
 
-# Compute mutual information (simplified for speed)
-def mutual_information(x, y):
-    joint_prob = np.histogram2d(x, y, bins=2)[0] / len(x)
-    joint_prob = joint_prob / joint_prob.sum()
-    nz = joint_prob > 0
-    return np.sum(joint_prob[nz] * np.log(joint_prob[nz] / (joint_prob.sum(axis=1)[:, None] * joint_prob.sum(axis=0)[None, :])[nz]))
+                if diff >= D_size:
+                    new_size = max(D_size * 2, diff + 1)
+                    new_D = np.zeros(new_size, dtype=np.bool_)
+                    new_D[:D_size] = D
+                    D = new_D
+                    D_size = new_size
 
-# Build mutual information matrix
-def compute_mi_matrix(data):
-    keys = list(data.keys())
-    n = len(keys)
-    mi_matrix = np.zeros((n, n))
-    for i in range(n):
-        for j in range(i + 1, n):
-            mi = mutual_information(data[keys[i]], data[keys[j]])
-            mi_matrix[i, j] = mi_matrix[j, i] = mi
-    print(f"MI matrix max: {np.max(mi_matrix):.6f}, min (off-diag): {np.min(mi_matrix[np.triu_indices(n, k=1)]):.6f}")
-    return mi_matrix, keys
+                if D[diff]:
+                    valid = False
+                    break
+                if diff > max_diff:
+                    max_diff = diff
+                                     
+            if valid:
+                # Ensure temp array is large enough
+                if max_diff >= temp_size:
+                    new_temp_size = max(temp_size * 2, max_diff + 1)
+                    new_temp = np.zeros(new_temp_size, dtype=np.bool_)
+                    new_temp[:temp_size] = temp
+                    temp = new_temp
+                    temp_size = new_temp_size
 
-# Compute informational metrics with tighter percentile threshold
-def compute_informational_metrics(mi_matrix, n):
-    I_max = np.log(n * (n - 1) / 2) if n > 1 else 0
-    ell_info = 1 / (1 + I_max)
-    d_matrix = 1 / (1 + mi_matrix + 1e-10)
-    np.fill_diagonal(d_matrix, np.inf)
-    threshold = np.percentile(mi_matrix[np.triu_indices(n, k=1)], 1)  # 1st percentile
-    d_matrix[mi_matrix < threshold] = np.inf
-    finite_dists = d_matrix[d_matrix < np.inf]
-    d_min = np.min(finite_dists) if len(finite_dists) > 0 else ell_info
-    R_n = (1 / ell_info**2) * (1 - d_min / ell_info) if d_min > ell_info else 0
-    return ell_info, R_n, d_min
+                # Check for internal duplicates among new differences
+                temp[:max_diff + 1] = False  # reset only used portion
+                for i in range(current_length):
+                    diff = m - G[i]
+                    if temp[diff]:                                  
+                        valid = False
+                        break
+                    temp[diff] = True
+                                                
+            if valid:
+                for i in range(current_length):
+                    diff = m - G[i]
+                    D[diff] = True
+                G[current_length] = m
+                current_length += 1
+                break  
+            else:
+                m += 1                                      
 
-# Dimensional bifurcation analysis
-def analyze_dimensionality(mi_matrix, n, eps1=1.5, eps2=1.2):
-    D = np.diag(np.sum(mi_matrix, axis=1))
-    L = D - mi_matrix
-    eigenvalues = eigh(L, subset_by_index=[0, min(3, n-1)])[0]
-    return eigenvalues[1:4] if len(eigenvalues) > 3 else eigenvalues[1:]
-					   
-# Plot MI landscape
-def plot_mi_landscape(mi_matrix, title="MI Landscape"):
-    n = mi_matrix.shape[0]
-    x, y = np.meshgrid(range(n), range(n))
-    fig = plt.figure(figsize=(12, 8))
-    ax = fig.add_subplot(111, projection='3d')
-    surf = ax.plot_surface(x, y, mi_matrix, cmap='terrain', edgecolor='none', alpha=0.8)
-    ax.set_xlabel('Golomb Position Index')
-    ax.set_ylabel('Golomb Position Index')
-    ax.set_zlabel('Mutual Information')
-    ax.set_title(title)
-    fig.colorbar(surf, shrink=0.5, aspect=5, label='MI Value')
-    plt.tight_layout()
-    plt.savefig(f'/Users/ralf/Downloads/{title.replace(" ", "_")}.png')  # Save to specific path
-    plt.show()
+    return G.astype(np.float64)
 
-# Main simulation with trend plotting
-def main():
-    n_values = [50, 100]
-    ratios12, ratios23 = [], []
+def compute_metrics(G):
+    """Numerically stable metric calculation"""
+    n = len(G)
+    if n < 2:
+        return 1.0, 1.0, 0.0, np.zeros((n,n))
     
-    for n in n_values:
-        print(f"\nSimulating with n={n} distinctions...")
-        G = generate_golomb_sequence(n)
-        print(f"Golomb positions: {G[:10]}... (total {len(G)})")
-        
-        data = simulate_distinction_data(G)
-        mi_matrix, keys = compute_mi_matrix(data)
-        print("MI matrix computed.")
-        
-        plot_mi_landscape(mi_matrix, title=f"MI Landscape (n={n})")
-        
-        ell_info, R_n, d_min = compute_informational_metrics(mi_matrix, n)
-        print(f"ell_info: {ell_info:.6f}, R_n: {R_n:.6f}, d_min: {d_min:.6f}")
-        
-        eigenvalues = analyze_dimensionality(mi_matrix, n)
-        ratio12 = eigenvalues[1] / eigenvalues[0] if len(eigenvalues) > 1 else 0
-        ratio23 = eigenvalues[2] / eigenvalues[1] if len(eigenvalues) > 2 else 0
-        ratios12.append(ratio12)
-        ratios23.append(ratio23)
-        print(f"Ratio λ2/λ1: {ratio12:.3f}, Ratio λ3/λ2: {ratio23:.3f}")
-        if ratio12 > 1.5:
-            print("Transition to 2D detected.")
-        if ratio23 > 1.2 and ratio12 > 1.5:
-            print("Transition to 3D detected.")
+    # Safe difference calculation
+    diffs = np.abs(np.subtract.outer(G, G))
+    np.fill_diagonal(diffs, np.inf)
+    mean_diff = np.mean(diffs[diffs < np.inf])
+    norm_diffs = diffs / (mean_diff + 1e-16)
     
-    # Plot eigenvalue ratios
+    # Mutual information matrix                           
+    W = np.log(1 + 1/norm_diffs)
+    W = np.nan_to_num(W, nan=0.0, posinf=0.0, neginf=0.0)
+                                                          
+    # Framework metrics
+    I_max = np.max(W)
+    d_min = 1/(1 + I_max)
+    l_info = 1/(1 + np.log(n))
+    R_n = max(0, (1/l_info) * (1 - d_min/l_info))
+    
+    return d_min, l_info, R_n, W
+
+def check_transitions(G, d_min, l_info, R_n):
+    n = len(G)
+    if n < 10:
+        return False, False, 0.0, 0.0
+
+    try:
+        _, _, _, W = compute_metrics(G)
+        D = np.diag(np.sum(W, axis=1))
+        L = D - W
+                                                               
+        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 3])
+        λ0, λ1, λ2, λ3 = eigenvalues
+
+        λ1 = max(λ1, 1e-8)
+        λ2 = max(λ2, 1e-8)
+        λ3 = max(λ3, 1e-8)
+
+        r1 = λ2 / λ1  # For 1D→2D
+        r2 = λ3 / λ2  # For 2D→3D
+
+        transition_2D = (r1 > 1.3 and R_n > 1.3)
+        transition_3D = (r2 > 1.15 and R_n > 2.2)
+
+        return transition_2D, transition_3D, r1, r2
+                                                                                                   
+    except Exception as e:
+        print("Error in check_transitions:", e)
+        return False, False, 0.0, 0.0
+
+def validate_golomb(G):
+    """Validate that G is a Golomb ruler (all pairwise differences are unique)"""
+    n = len(G)
+    diffs = np.abs(np.subtract.outer(G, G))
+    np.fill_diagonal(diffs, np.inf)
+    unique_diffs = np.unique(diffs[diffs < np.inf])
+    expected_diffs = n * (n - 1) // 2
+    is_valid = len(unique_diffs) == expected_diffs
+    entropy = expected_diffs  # S_n = binomial(n, 2)
+    return is_valid, entropy
+
+def plot_results(G_full, results, metrics_history):
+    """Generate and display graphical outputs for Golomb ruler, mutual information, eigenvalues, and transitions"""
+    n_max = len(G_full)
+    ns, d_mins, l_infos, R_ns, r1s, r2s = metrics_history
+
+    # Plot 1: Golomb Ruler Growth
     plt.figure(figsize=(10, 6))
-    plt.plot(n_values, ratios12, label="λ2/λ1")
-    plt.plot(n_values, ratios23, label="λ3/λ2")
-    plt.axhline(1.5, color='r', linestyle='--', label="2D Threshold")
-    plt.axhline(1.2, color='g', linestyle='--', label="3D Threshold")
-    plt.xlabel("Number of Distinctions (n)")
-    plt.ylabel("Eigenvalue Ratio")
-    plt.title("Dimensional Bifurcation Trends")
-    plt.legend()
+    plt.plot(range(1, n_max + 1), G_full, 'o-', label='Golomb Ruler Marks')
+    plt.xlabel('Index (n)')
+    plt.ylabel('Golomb Ruler Value')
+    plt.title('Growth of Golomb Ruler')
     plt.grid(True)
-    plt.savefig('/Users/ralf/Downloads/bifurcation_trends.png')  # Save to specific path
+    plt.legend()
+    plt.savefig('golomb_ruler_growth.png')
     plt.show()
+    plt.close()
 
-if __name__ == "__main__":
-    main()
+    # Plot 2: Mutual Information Matrix at n_max
+    _, _, _, W = compute_metrics(G_full)
+    plt.figure(figsize=(8, 6))
+    plt.imshow(W, cmap='viridis', interpolation='nearest')
+    plt.colorbar(label='Mutual Information I(X_i; X_j)')
+    plt.title(f'Mutual Information Matrix at n={n_max}')
+    plt.xlabel('Distinction i')
+    plt.ylabel('Distinction j')
+    plt.savefig('mutual_information_matrix.png')
+    plt.show()
+    plt.close()
+
+    # Plot 3: Eigenvalue Ratios and Curvature
+    plt.figure(figsize=(10, 6))
+    plt.plot(ns, r1s, label='λ₂/λ₁ (1D→2D)')
+    plt.plot(ns, r2s, label='λ₃/λ₂ (2D→3D)')
+    plt.axhline(y=1.3, color='r', linestyle='--', label='1D→2D Threshold (1.3)')
+    plt.axhline(y=1.15, color='g', linestyle='--', label='2D→3D Threshold (1.15)')
+    plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
+    plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
+    plt.xlabel('Number of Distinctions (n)')
+    plt.ylabel('Eigenvalue Ratios')
+    plt.title('Eigenvalue Ratios for Dimensional Transitions')
+    plt.grid(True)
+    plt.legend()
+    plt.savefig('eigenvalue_ratios.png')
+    plt.show()
+    plt.close()
+
+    # Plot 4: Informational Curvature
+    plt.figure(figsize=(10, 6))
+    plt.plot(ns, R_ns, label='R_n')
+    plt.axhline(y=1.3, color='r', linestyle='--', label='1D→2D Threshold (1.3)')
+    plt.axhline(y=2.2, color='g', linestyle='--', label='2D→3D Threshold (2.2)')
+    plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
+    plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
+    plt.xlabel('Number of Distinctions (n)')
+    plt.ylabel('Informational Curvature (R_n)')
+    plt.title('Informational Curvature Evolution')
+    plt.grid(True)
+    plt.legend()
+    plt.savefig('informational_curvature.png')
+    plt.show()
+    plt.close()
+
+def print_summary(results, metrics_history):
+    """Print a summary table of essential calculated values"""
+    ns, d_mins, l_infos, R_ns, r1s, r2s = metrics_history
+    print("\nSummary of Essential Calculated Values:")
+    print("-" * 50)
+    print(f"{'n':>5} | {'d_min':>8} | {'l_info':>8} | {'R_n':>8} | {'λ₂/λ₁':>8} | {'λ₃/λ₂':>8}")
+    print("-" * 50)
+    
+    # Print at 2D transition
+    if results["2D"] is not None:
+        idx = results["2D"] - 1
+        print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} (2D Transition)")
+    
+    # Print at 3D transition
+    if results["3D"] is not None:
+        idx = results["3D"] - 1
+        print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} (3D Transition)")
+    
+    # Print at final n
+    idx = len(ns) - 1
+    print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} (Final)")
+
+def print_validation(G, results):
+    """Print validation parameters to confirm compliance with the framework"""
+    is_valid, entropy = validate_golomb(G)
+    print("\nValidation Parameters:")
+    print("-" * 50)
+    print(f"Golomb Ruler Validity: {'Valid' if is_valid else 'Invalid'}")
+    print(f"Entropy (S_n = n(n-1)/2): {entropy}")
+    
+    # Validate dimensional transitions
+    if results["2D"] is not None:
+        G_2D = G[:results["2D"]]
+        d_min, l_info, R_n, _ = compute_metrics(G_2D)
+        _, _, r1, r2 = check_transitions(G_2D, d_min, l_info, R_n)
+        print(f"1D→2D Transition at n={results['2D']}:")
+        print(f"  λ₂/λ₁ = {r1:.3f} (> 1.3: {'Valid' if r1 > 1.3 else 'Invalid'})")
+        print(f"  R_n = {R_n:.3f} (> 1.3: {'Valid' if R_n > 1.3 else 'Invalid'})")
+    
+    if results["3D"] is not None:
+        G_3D = G[:results["3D"]]
+        d_min, l_info, R_n, _ = compute_metrics(G_3D)
+        _, _, r1, r2 = check_transitions(G_3D, d_min, l_info, R_n)
+        print(f"2D→3D Transition at n={results['3D']}:")
+        print(f"  λ₃/λ₂ = {r2:.3f} (> 1.15: {'Valid' if r2 > 1.15 else 'Invalid'})")
+        print(f"  R_n = {R_n:.3f} (> 2.2: {'Valid' if R_n > 2.2 else 'Invalid'})")
+
+def simulate(n_max):
+    """Efficient simulation with reused Golomb ruler prefix, enhanced with plotting and validation"""
+    results = {"2D": None, "3D": None}
+    G_full = generate_golomb(n_max)
+    
+    # Store metrics for plotting
+    ns = []
+    d_mins = []
+    l_infos = []
+    R_ns = []                                       
+    r1s = []
+    r2s = []
+
+    for n in range(1, n_max + 1):
+        G = G_full[:n]                                                      
+        d_min, l_info, R_n, _ = compute_metrics(G)
+        t2d, t3d, r1, r2 = check_transitions(G, d_min, l_info, R_n)
+
+        ns.append(n)
+        d_mins.append(d_min)
+        l_infos.append(l_info)
+        R_ns.append(R_n)
+        r1s.append(r1)
+        r2s.append(r2)
+
+        if t2d and results["2D"] is None:
+            results["2D"] = n                       
+        if t3d and results["2D"] is not None and results["3D"] is None:
+            results["3D"] = n                             
+
+        if n % 10 == 0:
+            print(f"Progress: n={n}, d_min={d_min:.3f}, l_info={l_info:.3f}, R_n={R_n:.3f}")
+    
+    # Generate and display plots
+    plot_results(G_full, results, (ns, d_mins, l_infos, R_ns, r1s, r2s))
+    
+    # Print summary
+    print_summary(results, (ns, d_mins, l_infos, R_ns, r1s, r2s))
+    
+    # Print validation
+    print_validation(G_full, results)
+    
+    return results
+
+# Run simulation
+print("Starting simulation...")
+results = simulate(100)
+print("\nFinal Results:")
+print(f"1D→2D transition at n={results['2D']}")
+print(f"2D→3D transition at n={results['3D']}")
