@@ -100,7 +100,7 @@ def compute_metrics(G):
     return d_min, l_info, R_n, W
 
 def compute_embedding(G, dim):
-    """Compute spectral embedding in 2D or 3D using Laplacian eigenvectors"""
+    """Compute spectral embedding in 2D, 3D, or 4D using Laplacian eigenvectors"""
     n = len(G)
     if n < 2:
         return np.zeros((n, dim))
@@ -121,31 +121,34 @@ def compute_embedding(G, dim):
 def check_transitions(G, d_min, l_info, R_n):
     n = len(G)
     if n < 10:
-        return False, False, 0.0, 0.0
+        return False, False, False, 0.0, 0.0, 0.0
 
     try:
         _, _, _, W = compute_metrics(G)
         D = np.diag(np.sum(W, axis=1))
         L = D - W 
                                                                
-        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 3])
-        λ0, λ1, λ2, λ3 = eigenvalues
+        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 4])
+        λ0, λ1, λ2, λ3, λ4 = eigenvalues
 
         λ1 = max(λ1, 1e-8)
         λ2 = max(λ2, 1e-8)
         λ3 = max(λ3, 1e-8)
+        λ4 = max(λ4, 1e-8)
 
         r1 = λ2 / λ1  # For 1D→2D
         r2 = λ3 / λ2  # For 2D→3D
+        r3 = λ4 / λ3  # For 3D→4D
 
         transition_2D = (r1 > 1.3 and R_n > 1.3)
         transition_3D = (r2 > 1.15 and R_n > 2.2)
+        transition_4D = (r3 > 1.01 and R_n > 3.0)
 
-        return transition_2D, transition_3D, r1, r2
+        return transition_2D, transition_3D, transition_4D, r1, r2, r3
                                                                                                    
     except Exception as e:
         print("Error in check_transitions:", e)
-        return False, False, 0.0, 0.0
+        return False, False, False, 0.0, 0.0, 0.0
 
 def validate_golomb(G):
     """Validate that G is a Golomb ruler (all pairwise differences are unique)"""
@@ -161,7 +164,7 @@ def validate_golomb(G):
 def plot_results(G_full, results, metrics_history):
     """Generate and display graphical outputs for Golomb ruler, mutual information, eigenvalues, transitions, and embeddings"""
     n_max = len(G_full)
-    ns, d_mins, l_infos, R_ns, r1s, r2s = metrics_history
+    ns, d_mins, l_infos, R_ns, r1s, r2s, r3s = metrics_history
 
     # Plot 1: Golomb Ruler Growth
     plt.figure(figsize=(10, 6))
@@ -191,12 +194,16 @@ def plot_results(G_full, results, metrics_history):
     plt.figure(figsize=(10, 6))
     plt.plot(ns, r1s, label='λ₂/λ₁ (1D→2D)')
     plt.plot(ns, r2s, label='λ₃/λ₂ (2D→3D)')
+    plt.plot(ns, r3s, label='λ₄/λ₃ (3D→4D)')
     plt.axhline(y=1.3, color='r', linestyle='--', label='1D→2D Threshold (1.3)')
     plt.axhline(y=1.15, color='g', linestyle='--', label='2D→3D Threshold (1.15)')
+    plt.axhline(y=1.1, color='b', linestyle='--', label='3D→4D Threshold (1.1)')
     if results.get('2D') is not None:
         plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
     if results.get('3D') is not None:
         plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
+    if results.get('4D') is not None:
+        plt.axvline(x=results.get('4D'), color='b', linestyle=':', label=f'3D→4D at n={results.get("4D")}')
     plt.xlabel('Number of Distinctions (n)')
     plt.ylabel('Eigenvalue Ratios')
     plt.title('Eigenvalue Ratios for Dimensional Transitions')
@@ -211,10 +218,13 @@ def plot_results(G_full, results, metrics_history):
     plt.plot(ns, R_ns, label='R_n')
     plt.axhline(y=1.3, color='r', linestyle='--', label='1D→2D Threshold (1.3)')
     plt.axhline(y=2.2, color='g', linestyle='--', label='2D→3D Threshold (2.2)')
+    plt.axhline(y=3.0, color='b', linestyle='--', label='3D→4D Threshold (3.0)')
     if results.get('2D') is not None:
         plt.axvline(x=results.get('2D'), color='r', linestyle=':', label=f'1D→2D at n={results.get("2D")}')
     if results.get('3D') is not None:
         plt.axvline(x=results.get('3D'), color='g', linestyle=':', label=f'2D→3D at n={results.get("3D")}')
+    if results.get('4D') is not None:
+        plt.axvline(x=results.get('4D'), color='b', linestyle=':', label=f'3D→4D at n={results.get("4D")}')
     plt.xlabel('Number of Distinctions (n)')
     plt.ylabel('Informational Curvature (R_n)')
     plt.title('Informational Curvature Evolution')
@@ -257,25 +267,30 @@ def plot_results(G_full, results, metrics_history):
 
 def print_summary(results, metrics_history):
     """Print a summary table of essential calculated values"""
-    ns, d_mins, l_infos, R_ns, r1s, r2s = metrics_history
+    ns, d_mins, l_infos, R_ns, r1s, r2s, r3s = metrics_history
     print("\nSummary of Essential Calculated Values:")
-    print("-" * 50)
-    print(f"{'n':>5} | {'d_min':>8} | {'l_info':>8} | {'R_n':>8} | {'λ₂/λ₁':>8} | {'λ₃/λ₂':>8}")
-    print("-" * 50)
+    print("-" * 60)
+    print(f"{'n':>5} | {'d_min':>8} | {'l_info':>8} | {'R_n':>8} | {'λ₂/λ₁':>8} | {'λ₃/λ₂':>8} | {'λ₄/λ₃':>8}")
+    print("-" * 60)
     
     # Print at 2D transition
     if results["2D"] is not None:
         idx = results["2D"] - 1
-        print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} (2D Transition)")
+        print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} | {r3s[idx]:>8.3f} (2D Transition)")
     
     # Print at 3D transition
     if results["3D"] is not None:
         idx = results["3D"] - 1
-        print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} (3D Transition)")
+        print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} | {r3s[idx]:>8.3f} (3D Transition)")
+    
+    # Print at 4D transition
+    if results["4D"] is not None:
+        idx = results["4D"] - 1
+        print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} | {r3s[idx]:>8.3f} (4D Transition)")
     
     # Print at final n
     idx = len(ns) - 1
-    print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} (Final)")
+    print(f"{ns[idx]:>5} | {d_mins[idx]:>8.3f} | {l_infos[idx]:>8.3f} | {R_ns[idx]:>8.3f} | {r1s[idx]:>8.3f} | {r2s[idx]:>8.3f} | {r3s[idx]:>8.3f} (Final)")
 
 def print_validation(G, results):
     """Print enhanced validation parameters to confirm compliance with the framework"""
@@ -289,26 +304,27 @@ def print_validation(G, results):
     temporal_valid = np.all(np.diff(G) > 0)
     print(f"Temporal Order (Axiom III, G[i] < G[i+1]): {'Valid' if temporal_valid else 'Invalid'}")
     
-    # Validate dimensional transitions
+    # Validate 1D→2D transition
     if results["2D"] is not None:
         G_2D = G[:results["2D"]]
         d_min, l_info, R_n, W = compute_metrics(G_2D)
-        _, _, r1, r2 = check_transitions(G_2D, d_min, l_info, R_n)
+        _, _, _, r1, r2, r3 = check_transitions(G_2D, d_min, l_info, R_n)
         
-        # Compute energy functional (Axiom V) with absolute value
+        # Compute energy functional (Axiom V)
         n = len(G_2D)
-        d_ij = 1 / (1 + W)
+        d_ij = 1 / (1 + W)          
         np.fill_diagonal(d_ij, np.inf)
         E_n = np.sum(np.abs(1 / d_ij[d_ij < np.inf]**2 - 1 / l_info**2)) / 2
         
         # Compute spectral gaps
         D = np.diag(np.sum(W, axis=1))
         L = D - W
-        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 3])
-        λ0, λ1, λ2, λ3 = eigenvalues
+        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 4])
+        λ0, λ1, λ2, λ3, λ4 = eigenvalues
         gap1 = λ1
         gap2 = λ2 - λ1
         gap3 = λ3 - λ2
+        gap4 = λ4 - λ3
         
         # Compute embedding distortion in 2D
         embedding_2D = compute_embedding(G_2D, 2)
@@ -320,15 +336,16 @@ def print_validation(G, results):
         print(f"  λ₂/λ₁ = {r1:.3f} (> 1.3: {'Valid' if r1 > 1.3 else 'Invalid'})")
         print(f"  R_n = {R_n:.3f} (> 1.3: {'Valid' if R_n > 1.3 else 'Invalid'})")
         print(f"  Energy Functional (Axiom V): E_n = {E_n:.3f} (>= 0: {'Valid' if E_n >= 0 else 'Invalid'})")
-        print(f"  Spectral Gaps (Annex H): λ₁ = {gap1:.3f}, λ₂-λ₁ = {gap2:.3f}, λ₃-λ₂ = {gap3:.3f}")
+        print(f"  Spectral Gaps (Annex H): λ₁ = {gap1:.3f}, λ₂-λ₁ = {gap2:.3f}, λ₃-λ₂ = {gap3:.3f}, λ₄-λ₃ = {gap4:.3f}")
         print(f"  2D Embedding Distortion (Annex D): {distortion:.3f}")
     
+    # Validate 2D→3D transition
     if results["3D"] is not None:
         G_3D = G[:results["3D"]]
         d_min, l_info, R_n, W = compute_metrics(G_3D)
-        _, _, r1, r2 = check_transitions(G_3D, d_min, l_info, R_n)
+        _, _, _, r1, r2, r3 = check_transitions(G_3D, d_min, l_info, R_n)
         
-        # Compute energy functional with absolute value
+        # Compute energy functional
         n = len(G_3D)
         d_ij = 1 / (1 + W)
         np.fill_diagonal(d_ij, np.inf)
@@ -337,11 +354,12 @@ def print_validation(G, results):
         # Compute spectral gaps
         D = np.diag(np.sum(W, axis=1))
         L = D - W
-        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 3])
-        λ0, λ1, λ2, λ3 = eigenvalues
+        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 4])
+        λ0, λ1, λ2, λ3, λ4 = eigenvalues
         gap1 = λ1
         gap2 = λ2 - λ1
         gap3 = λ3 - λ2
+        gap4 = λ4 - λ3
         
         # Compute embedding distortion in 3D
         embedding_3D = compute_embedding(G_3D, 3)
@@ -353,12 +371,47 @@ def print_validation(G, results):
         print(f"  λ₃/λ₂ = {r2:.3f} (> 1.15: {'Valid' if r2 > 1.15 else 'Invalid'})")
         print(f"  R_n = {R_n:.3f} (> 2.2: {'Valid' if R_n > 2.2 else 'Invalid'})")
         print(f"  Energy Functional (Axiom V): E_n = {E_n:.3f} (>= 0: {'Valid' if E_n >= 0 else 'Invalid'})")
-        print(f"  Spectral Gaps (Annex H): λ₁ = {gap1:.3f}, λ₂-λ₁ = {gap2:.3f}, λ₃-λ₂ = {gap3:.3f}")
+        print(f"  Spectral Gaps (Annex H): λ₁ = {gap1:.3f}, λ₂-λ₁ = {gap2:.3f}, λ₃-λ₂ = {gap3:.3f}, λ₄-λ₃ = {gap4:.3f}")
         print(f"  3D Embedding Distortion (Annex D): {distortion:.3f}")
+    
+    # Validate 3D→4D transition
+    if results["4D"] is not None:
+        G_4D = G[:results["4D"]]
+        d_min, l_info, R_n, W = compute_metrics(G_4D)
+        _, _, _, r1, r2, r3 = check_transitions(G_4D, d_min, l_info, R_n)
+        
+        # Compute energy functional
+        n = len(G_4D)
+        d_ij = 1 / (1 + W)
+        np.fill_diagonal(d_ij, np.inf)
+        E_n = np.sum(np.abs(1 / d_ij[d_ij < np.inf]**2 - 1 / l_info**2)) / 2
+        
+        # Compute spectral gaps
+        D = np.diag(np.sum(W, axis=1))
+        L = D - W
+        eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 4])
+        λ0, λ1, λ2, λ3, λ4 = eigenvalues
+        gap1 = λ1
+        gap2 = λ2 - λ1
+        gap3 = λ3 - λ2
+        gap4 = λ4 - λ3
+        
+        # Compute embedding distortion in 4D
+        embedding_4D = compute_embedding(G_4D, 4)
+        euclidean_dists = np.sqrt(np.sum((embedding_4D[:, None] - embedding_4D)**2, axis=2))
+        np.fill_diagonal(d_ij, 0)
+        distortion = np.mean((euclidean_dists - d_ij)**2 / (d_ij**2 + 1e-16))
+        
+        print(f"\n3D→4D Transition at n={results['4D']}:")
+        print(f"  λ₄/λ₃ = {r3:.3f} (> 1.01: {'Valid' if r3 > 1.01 else 'Invalid'})")
+        print(f"  R_n = {R_n:.3f} (> 3.0: {'Valid' if R_n > 3.0 else 'Invalid'})")
+        print(f"  Energy Functional (Axiom V): E_n = {E_n:.3f} (>= 0: {'Valid' if E_n >= 0 else 'Invalid'})")
+        print(f"  Spectral Gaps (Annex H): λ₁ = {gap1:.3f}, λ₂-λ₁ = {gap2:.3f}, λ₃-λ₂ = {gap3:.3f}, λ₄-λ₃ = {gap4:.3f}")
+        print(f"  4D Embedding Distortion (Annex D): {distortion:.3f}")
 
 def simulate(n_max):
     """Efficient simulation with reused Golomb ruler prefix, enhanced with plotting and validation"""
-    results = {"2D": None, "3D": None}
+    results = {"2D": None, "3D": None, "4D": None}
     G_full = generate_golomb(n_max)
     
     # Store metrics for plotting
@@ -368,11 +421,12 @@ def simulate(n_max):
     R_ns = []
     r1s = []
     r2s = []
+    r3s = []
 
     for n in range(1, n_max + 1):
         G = G_full[:n]
         d_min, l_info, R_n, _ = compute_metrics(G)
-        t2d, t3d, r1, r2 = check_transitions(G, d_min, l_info, R_n)
+        t2d, t3d, t4d, r1, r2, r3 = check_transitions(G, d_min, l_info, R_n)
 
         ns.append(n)
         d_mins.append(d_min)
@@ -380,20 +434,23 @@ def simulate(n_max):
         R_ns.append(R_n)
         r1s.append(r1)
         r2s.append(r2)
+        r3s.append(r3)
 
         if t2d and results["2D"] is None:
             results["2D"] = n                       
         if t3d and results["2D"] is not None and results["3D"] is None:
-            results["3D"] = n                             
+            results["3D"] = n
+        if t4d and results["3D"] is not None and results["4D"] is None:
+            results["4D"] = n
 
         if n % 10 == 0:
             print(f"Progress: n={n}, d_min={d_min:.3f}, l_info={l_info:.3f}, R_n={R_n:.3f}")
     
     # Generate and display plots
-    plot_results(G_full, results, (ns, d_mins, l_infos, R_ns, r1s, r2s))
+    plot_results(G_full, results, (ns, d_mins, l_infos, R_ns, r1s, r2s, r3s))
     
     # Print summary
-    print_summary(results, (ns, d_mins, l_infos, R_ns, r1s, r2s))
+    print_summary(results, (ns, d_mins, l_infos, R_ns, r1s, r2s, r3s))
     
     # Print validation
     print_validation(G_full, results)
@@ -402,7 +459,8 @@ def simulate(n_max):
 
 # Run simulation
 print("Starting simulation...")
-results = simulate(1500)
+results = simulate(800)
 print("\nFinal Results:")
 print(f"1D→2D transition at n={results['2D']}")
 print(f"2D→3D transition at n={results['3D']}")
+print(f"3D→4D transition at n={results['4D']}")
