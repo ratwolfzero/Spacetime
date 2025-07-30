@@ -120,7 +120,7 @@ def compute_embedding(G, dim):
 
 def check_transitions(G, d_min, l_info, R_n):
     n = len(G)
-    if n < 10:
+    if n < 10:                                                                                   
         return False, False, False, False, 0.0, 0.0, 0.0, 0.0
 
     try:
@@ -129,7 +129,7 @@ def check_transitions(G, d_min, l_info, R_n):
         L = D - W 
                                                                
         eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 5])
-        λ0, λ1, λ2, λ3, λ4, λ5 = eigenvalues
+        λ0, λ1, λ2, λ3, λ4, λ5 = eigenvalues                                                     
 
         λ1 = max(λ1, 1e-8)
         λ2 = max(λ2, 1e-8)
@@ -142,7 +142,7 @@ def check_transitions(G, d_min, l_info, R_n):
         r3 = λ4 / λ3  # For 3D→4D
         r4 = λ5 / λ4  # For 4D→5D
 
-        transition_2D = (r1 > 1.3 and R_n > 1.3)
+        transition_2D = (r1 > 1.3 and R_n > 1.3)                                                 
         transition_3D = (r2 > 1.15 and R_n > 2.2)
         transition_4D = (r3 > 1.01 and R_n > 3.0)
         transition_5D = (r4 > 1.00 and R_n > 4.0)
@@ -179,12 +179,12 @@ def plot_results(G_full, results, metrics_history):
     plt.legend()
     plt.savefig('golomb_ruler_growth.png')
     plt.show()
-    plt.close()
+    plt.close()                                                                                  
 
     # Plot 2: Mutual Information Matrix at n_max
     _, _, _, W = compute_metrics(G_full)
     plt.figure(figsize=(8, 6))
-    plt.imshow(W, cmap='magma', interpolation='nearest')
+    plt.imshow(W, cmap='magma', interpolation='bilinear')
     plt.colorbar(label='Mutual Information I(X_i; X_j)')
     plt.title(f'Mutual Information Matrix at n={n_max}')
     plt.xlabel('Distinction i')
@@ -325,11 +325,12 @@ def print_validation(G, results):
         d_min, l_info, R_n, W = compute_metrics(G_2D)
         _, _, _, _, r1, r2, r3, r4 = check_transitions(G_2D, d_min, l_info, R_n)
         
-        # Compute energy functional (Axiom V)
+        # Compute energy functional (Axiom V) with corrected dynamic scale
         n = len(G_2D)
         d_ij = 1 / (1 + W)
         np.fill_diagonal(d_ij, np.inf)
-        E_n = np.sum(np.abs(1 / d_ij[d_ij < np.inf]**2 - 1 / l_info**2)) / 2
+        l_eff = np.min(d_ij[d_ij < np.inf])  # Dynamic scale: min d(i,j)
+        E_n = np.sum(1 / l_eff**2 - 1 / d_ij[d_ij < np.inf]**2) / 2
         
         # Compute spectral gaps
         D = np.diag(np.sum(W, axis=1))
@@ -361,13 +362,14 @@ def print_validation(G, results):
         d_min, l_info, R_n, W = compute_metrics(G_3D)
         _, _, _, _, r1, r2, r3, r4 = check_transitions(G_3D, d_min, l_info, R_n)
         
-        # Compute energy functional
+        # Compute energy functional with corrected dynamic scale
         n = len(G_3D)
         d_ij = 1 / (1 + W)
         np.fill_diagonal(d_ij, np.inf)
-        E_n = np.sum(np.abs(1 / d_ij[d_ij < np.inf]**2 - 1 / l_info**2)) / 2
+        l_eff = np.min(d_ij[d_ij < np.inf])  # Dynamic scale: min d(i,j)
+        E_n = np.sum(1 / l_eff**2 - 1 / d_ij[d_ij < np.inf]**2) / 2
         
-        # Compute spectral gaps
+        # Compute spectral gaps                                               
         D = np.diag(np.sum(W, axis=1))
         L = D - W
         eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 5])
@@ -382,7 +384,7 @@ def print_validation(G, results):
         embedding_3D = compute_embedding(G_3D, 3)
         euclidean_dists = np.sqrt(np.sum((embedding_3D[:, None] - embedding_3D)**2, axis=2))
         np.fill_diagonal(d_ij, 0)
-        distortion = np.mean((euclidean_dists - d_ij)**2 / (d_ij**2 + 1e-16))
+        distortion = np.mean((euclidean_dists - d_ij)**2 / (d_ij**2 + 1e-16)) 
         
         print(f"\n2D→3D Transition at n={results['3D']}:")
         print(f"  λ₃/λ₂ = {r2:.3f} (> 1.15: {'Valid' if r2 > 1.15 else 'Invalid'})")
@@ -397,11 +399,12 @@ def print_validation(G, results):
         d_min, l_info, R_n, W = compute_metrics(G_4D)
         _, _, _, _, r1, r2, r3, r4 = check_transitions(G_4D, d_min, l_info, R_n)
         
-        # Compute energy functional
+        # Compute energy functional with corrected dynamic scale
         n = len(G_4D)
         d_ij = 1 / (1 + W)
         np.fill_diagonal(d_ij, np.inf)
-        E_n = np.sum(np.abs(1 / d_ij[d_ij < np.inf]**2 - 1 / l_info**2)) / 2
+        l_eff = np.min(d_ij[d_ij < np.inf])  # Dynamic scale: min d(i,j)
+        E_n = np.sum(1 / l_eff**2 - 1 / d_ij[d_ij < np.inf]**2) / 2           
         
         # Compute spectral gaps
         D = np.diag(np.sum(W, axis=1))
@@ -433,15 +436,16 @@ def print_validation(G, results):
         d_min, l_info, R_n, W = compute_metrics(G_5D)
         _, _, _, _, r1, r2, r3, r4 = check_transitions(G_5D, d_min, l_info, R_n)
         
-        # Compute energy functional
+        # Compute energy functional with corrected dynamic scale
         n = len(G_5D)
         d_ij = 1 / (1 + W)
         np.fill_diagonal(d_ij, np.inf)
-        E_n = np.sum(np.abs(1 / d_ij[d_ij < np.inf]**2 - 1 / l_info**2)) / 2
-																	 
+        l_eff = np.min(d_ij[d_ij < np.inf])  # Dynamic scale: min d(i,j)
+        E_n = np.sum(1 / l_eff**2 - 1 / d_ij[d_ij < np.inf]**2) / 2
+        
         # Compute spectral gaps
         D = np.diag(np.sum(W, axis=1))
-        L = D - W
+        L = D - W                                                             
         eigenvalues = eigh(L, eigvals_only=True, subset_by_index=[0, 5])
         λ0, λ1, λ2, λ3, λ4, λ5 = eigenvalues
         gap1 = λ1
@@ -498,12 +502,12 @@ def simulate(n_max):
             results["3D"] = n
         if t4d and results["3D"] is not None and results["4D"] is None:
             results["4D"] = n
-        if t5d and results["4D"] is not None and results["5D"] is None:
+        if t5d and results["4D"] is not None and results["5D"] is None:       
             results["5D"] = n
 
         if n % 10 == 0:
             print(f"Progress: n={n}, d_min={d_min:.3f}, l_info={l_info:.3f}, R_n={R_n:.3f}")
-    
+																			  
     # Generate and display plots
     plot_results(G_full, results, (ns, d_mins, l_infos, R_ns, r1s, r2s, r3s, r4s))
     
@@ -517,7 +521,7 @@ def simulate(n_max):
 
 # Run simulation                                                                  
 print("Starting simulation...")
-results = simulate(1000)
+results = simulate(1500)
 print("\nFinal Results:")
 print(f"1D→2D transition at n={results['2D']}")
 print(f"2D→3D transition at n={results['3D']}")
