@@ -184,7 +184,7 @@ def plot_results(G_full, results, metrics_history):
     # Plot 2: Mutual Information Matrix at n_max
     _, _, _, W = compute_metrics(G_full)
     plt.figure(figsize=(8, 6))
-    plt.imshow(W, cmap='plasma', interpolation='nearest')
+    plt.imshow(W, cmap='magma', interpolation='nearest')
     plt.colorbar(label='Mutual Information I(X_i; X_j)')
     plt.title(f'Mutual Information Matrix at n={n_max}')
     plt.xlabel('Distinction i')
@@ -517,7 +517,7 @@ def simulate(n_max):
 
 # Run simulation                                                                  
 print("Starting simulation...")
-results = simulate(5000)
+results = simulate(1000)
 print("\nFinal Results:")
 print(f"1D→2D transition at n={results['2D']}")
 print(f"2D→3D transition at n={results['3D']}")
