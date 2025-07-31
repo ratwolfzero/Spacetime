@@ -382,17 +382,13 @@ def print_validation(G, results):
 from tqdm import tqdm  # Import for progress bars
 
 def simulate(n_max):                              
-    """Simulation with 3D spatial embedding and 4D spacetime embedding, with progress bars."""
+    """Simulation with 3D spatial embedding and 4D spacetime embedding."""
     results = {"2D": None, "3D": None, "4D": None, "5D": None}
     
-    # Progress bar for Golomb ruler generation
+    # Just a simple message without progress bar
     print("Generating Golomb ruler...")
-    with tqdm(total=n_max, desc="Golomb Ruler", bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]', unit=" steps") as pbar:
-        G_full = generate_golomb(n_max)
-        for i in range(1, n_max + 1):
-            if i % 10 == 0 or i == n_max:
-                pbar.update(10 if i != n_max else n_max % 10 or 10)
-    
+    G_full = generate_golomb(n_max)
+
     ns, d_mins, l_infos, R_ns, r1s, r2s, r3s, r4s = [], [], [], [], [], [], [], []
     
     # Progress bar for simulation calculations
@@ -424,6 +420,7 @@ def simulate(n_max):
     print_summary(results, (ns, d_mins, l_infos, R_ns, r1s, r2s, r3s, r4s))
     print_validation(G_full, results)
     return results
+
 
 # Run simulation
 print("Starting spacetime simulation...")
