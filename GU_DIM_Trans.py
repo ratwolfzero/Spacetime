@@ -62,6 +62,8 @@ def generate_golomb(n: int) -> np.ndarray:
 
 def compute_metrics(G):
     """Numerically stable metric calculation."""
+    # W represents the mutual information matrix I_n as defined in Axiom VII: log(1 + 1/d_ij)
+    # NOTE: I_n is a heuristic approximation; a Shannon derivation is an open question (Appendix I, Thermodynamics).
     n = len(G)
     if n < 2:
         return 1.0, 1.0, 0.0, np.zeros((n,n))
