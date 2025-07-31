@@ -315,7 +315,7 @@ def print_validation(G, results):
     temporal_valid = np.all(np.diff(G) > 0)
     print(f"Temporal Order (Axiom III, G[i] < G[i+1]): {'Valid' if temporal_valid else 'Invalid'}")
 
-    # Validate 2D→3D transition
+    ## Validate 2D→3D transition
     if results["3D"] is not None:
         G_3D = G[:results["3D"]]
         d_min, l_info, R_n, W = compute_metrics(G_3D)
@@ -344,6 +344,7 @@ def print_validation(G, results):
         print(f"  Energy Functional (Axiom V): E_n = {E_n:.3f} (>= 0: {'Valid' if E_n >= 0 else 'Invalid'})")
         print(f"  Spectral Gaps (Annex H): λ₁ = {gap1:.3f}, λ₂-λ₁ = {gap2:.3f}, λ₃-λ₂ = {gap3:.3f}, λ₄-λ₃ = {gap4:.3f}, λ₅-λ₄ = {gap5:.3f}")
         print(f"  3D Embedding Distortion (Annex D): {distortion:.3f}")
+        print(f"  W (I_n) Summary: Max = {np.max(W):.3f}, Mean = {np.mean(W[W > 0]):.3f}")  # Added
 
     # Validate 3D→4D spacetime transition
     if results["4D"] is not None:
@@ -374,6 +375,9 @@ def print_validation(G, results):
         print(f"  Energy Functional (Axiom V): E_n = {E_n:.3f} (>= 0: {'Valid' if E_n >= 0 else 'Invalid'})")
         print(f"  Spectral Gaps (Annex H): λ₁ = {gap1:.3f}, λ₂-λ₁ = {gap2:.3f}, λ₃-λ₂ = {gap3:.3f}, λ₄-λ₃ = {gap4:.3f}, λ₅-λ₄ = {gap5:.3f}")
         print(f"  3D Spatial Embedding Distortion (Annex D): {distortion:.3f}")
+        print(f"  W (I_n) Summary: Max = {np.max(W):.3f}, Mean = {np.mean(W[W > 0]):.3f}")  # Added
+
+    print("NOTE: W (I_n) is heuristic; a Shannon derivation may adjust dimensional transitions (Appendix I, Thermodynamics).")
 
 from tqdm import tqdm  # Import for progress bars
 
